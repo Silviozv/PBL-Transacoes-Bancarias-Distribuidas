@@ -1,8 +1,12 @@
+import threading
+
+
 class Database:
+    accounts: dict
+    users: dict
 
     def __init__(self):
         self.accounts = {}
+        self.users = {}
 
-    def get_accounts(self):
-        return self.accounts
-
+        self.lock = threading.Lock()
