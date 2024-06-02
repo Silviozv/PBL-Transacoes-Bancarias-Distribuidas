@@ -1,18 +1,40 @@
-class Account:
+import threading
 
-    def __init__(self, type_account: str, names_user: list, cpfs: list):
-        self.key = ""
-        self.id = ""
-        self.type_account = type_account
-        self.names_user = names_user
-        self.cpfs = cpfs
+
+class Account:
+    key: str
+    id: str
+    type_account: list
+    cpfs: list
+    balance: float
+    lock: object
+
+    def __init__(self, data_account: dict):
+        self.key = data_account["Chave"]  # Números do ID
+        self.id = data_account["ID"]  # AC(Posição na ordem de criação)
+        self.type_account = data_account["Tipo de conta"]  # Física (pessoal e conjunta), Jurídica
+        self.cpfs = data_account["CPFs"]  # Lista de CPFs
         self.balance = 0
 
-    def set_id(self, id: str):
-        self.id = id
+        self.lock = threading.Lock()
 
-    def set_key(self, key: str):
-        self.key = key
+    def deposit(self, value: str) -> dict:
+        self.balance = self.balance + float(value)
+        response = {"Bem sucedido": True}
+        return response
 
+    def withdraw(self, value: str) -> dict:
+        if self.balance >= float(value):
+            response = {"Bem sucedido": True}
+            self.balance = self.balance - float(value)
+            return response
+        else:
+            response = {"Bem sucedido": False, "Justificativa": "Saldo insuficiente"}
+            return response
 
-
+    def show_attributes(self):
+        print("Chave PIX: ", self.key)
+        print("ID: ", self.id)
+        print("Tipo de conta: ", self.type_account)
+        print("CPFs: ", self.cpfs)
+        print("Saldo: ", self.balance)
