@@ -64,5 +64,27 @@ def withdraw_value(id: str, value: str):
         return jsonify(response), 404
 
 
+@app.route('/send_transfer/<string:id_sender>/<string:value>/<string:key_recipient>/<string:ip_bank>', methods=['PATCH'])
+def send_transfer_value(id_sender: str, value: str, key_recipient: str, ip_bank: str):
+
+    data_transfer = {"ID remetente": id_sender, "Valor": value, "Chave PIX": key_recipient, "IP banco": ip_bank}
+    response = impl.send_transfer(data_transfer)
+    if response["Bem sucedido"] == True:
+        return jsonify(response), 200
+    else:
+        return jsonify(response), 404
+
+
+@app.route('/receive_transfer/<string:value>/<string:key_recipient>', methods=['PATCH'])
+def receive_transfer_value(value: str, key_recipient: str):
+
+    data_transfer = {"Valor": value, "Chave PIX": key_recipient}
+    response = impl.receive_transfer(data_transfer)
+    if response["Bem sucedido"] == True:
+        return jsonify(response), 200
+    else:
+        return jsonify(response), 404
+
+
 def start():
     app.run(port=5070, host='0.0.0.0')
