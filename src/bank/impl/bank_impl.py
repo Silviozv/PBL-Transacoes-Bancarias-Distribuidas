@@ -1,3 +1,4 @@
+import requests
 from model.database import Database
 from model.account import Account
 from model.user import User
@@ -32,7 +33,7 @@ def register_account(data_account: dict) -> dict:
 
     id = calculate_id()
     data_account["ID"] = id
-    data_account["Chave"] = len(database.accounts)
+    data_account["Chave"] = str(len(database.accounts))
     account = Account(data_account)
     with database.lock:
         database.accounts[id] = account
@@ -63,6 +64,62 @@ def withdraw(id: str, value: str) -> dict:
     with database.accounts[id].lock:
         response = database.accounts[id].withdraw(value)
     return response
+
+
+def send_transfer(data_transfer: dict) -> dict:
+    if data_transfer["ID remetente"] not in database.accounts:
+        response = {"Bem sucedido": False, "Justificativa": "Conta do remetente não encontrada"}
+        return response
+
+    if data_transfer["IP banco"] == database.ip_bank:
+        data_search = database.find_account_by_key(data_transfer["Chave PIX"])
+
+        if data_search["Conta encontrada"] == True:
+
+            if database.accounts[data_transfer["ID remetente"]].balance >= float(data_transfer["Valor"]):
+                with database.accounts[data_transfer["ID remetente"]].lock:
+                    database.accounts[data_transfer["ID remetente"]].withdraw(data_transfer["Valor"])
+                with database.accounts[data_search["ID conta"]].lock:
+                    database.accounts[data_search["ID conta"]].deposit(data_transfer["Valor"])
+                response = {"Bem sucedido": True}
+                return response
+            else:
+                response = {"Bem sucedido": False, "Justificativa": "Saldo insuficiente"}
+                return response
+
+        else:
+            response = {"Bem sucedido": False, "Justificativa": "Chave não encontrada"}
+            return response
+
+    response = database.accounts[data_transfer["ID remetente"]].withdraw(data_transfer["Valor"])
+
+    if response["Bem sucedido"] == True:
+        url = (f"http://{data_transfer['IP banco']}:5070/receive_transfer/{data_transfer['Valor']}/{data_transfer['Chave PIX']}")
+        response = requests.patch(url)
+
+        if response.status_code == 200:
+            return response.json()
+        else:
+            with database.accounts[data_transfer["ID remetente"]].lock:
+                database.accounts[data_transfer["ID remetente"]].withdraw(data_transfer["Valor"])
+            return response.json()
+
+    else:
+        return response
+    
+
+def receive_transfer(data_transfer: dict) -> dict:
+    data_search = database.find_account_by_key(data_transfer["Chave PIX"])
+
+    if data_search["Conta encontrada"] == True:
+        with database.accounts[data_search["ID conta"]].lock:
+            database.accounts[data_search["ID conta"]].deposit(data_transfer["Valor"])
+        response = {"Bem sucedido": True}
+        return response
+
+    else:
+        response = {"Bem sucedido": False, "Justificativa": "Chave não encontrada"}
+        return response
 
 
 def calculate_id() -> str:
