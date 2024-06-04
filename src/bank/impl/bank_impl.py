@@ -21,10 +21,10 @@ def register_user(data_user: dict) -> dict:
 
 def register_account(data_account: dict) -> dict:
     if data_account["Tipo de conta"][0] == "Fisica" and data_account["Tipo de conta"][1] == "Pessoal":
-            if data_account["CPFs"][0] in database.users:
-                if database.users[data_account["CPFs"][0]].have_physical_account == True:
-                    response = {"Bem sucedido": False, "Justificativa": "O usuário já possui uma conta física"}
-                    return response
+        if data_account["CPFs"][0] in database.users:
+            if database.users[data_account["CPFs"][0]].have_physical_account == True:
+                response = {"Bem sucedido": False, "Justificativa": "O usuário já possui uma conta física"}
+                return response
 
     for cpf in data_account["CPFs"]:
         if cpf not in database.users:
@@ -91,7 +91,8 @@ def send_transfer(data_transfer: dict) -> dict:
             response = {"Bem sucedido": False, "Justificativa": "Chave não encontrada"}
             return response
 
-    response = database.accounts[data_transfer["ID remetente"]].withdraw(data_transfer["Valor"])
+    with database.accounts[data_transfer["ID remetente"]].lock:
+        response = database.accounts[data_transfer["ID remetente"]].withdraw(data_transfer["Valor"])
 
     if response["Bem sucedido"] == True:
         url = (f"http://{data_transfer['IP banco']}:5070/receive_transfer/{data_transfer['Valor']}/{data_transfer['Chave PIX']}")
@@ -101,12 +102,12 @@ def send_transfer(data_transfer: dict) -> dict:
             return response.json()
         else:
             with database.accounts[data_transfer["ID remetente"]].lock:
-                database.accounts[data_transfer["ID remetente"]].withdraw(data_transfer["Valor"])
+                database.accounts[data_transfer["ID remetente"]].deposit(data_transfer["Valor"])
             return response.json()
 
     else:
         return response
-    
+
 
 def receive_transfer(data_transfer: dict) -> dict:
     data_search = database.find_account_by_key(data_transfer["Chave PIX"])
