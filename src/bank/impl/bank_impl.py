@@ -14,6 +14,7 @@ def register_user(data_user: dict) -> dict:
     user = User(data_user)
     with database.lock:
         database.users[user.cpf] = user
+        database.accounts[user.cpf] = []
 
     response = {"Bem sucedido": True}
     return response
@@ -33,10 +34,12 @@ def register_account(data_account: dict) -> dict:
 
     id = calculate_id()
     data_account["ID"] = id
-    data_account["Chave"] = str(len(database.accounts))
+    data_account["Chave"] = str(database.count_accounts)
+    database.count_accounts += 1
     account = Account(data_account)
     with database.lock:
-        database.accounts[id] = account
+        for cpf in data_account["CPFs"]:
+            database.accounts[cpf].append(account)
 
     if data_account["Tipo de conta"][0] == "Fisica" and data_account["Tipo de conta"][1] == "Pessoal":
         with database.lock:
@@ -46,23 +49,35 @@ def register_account(data_account: dict) -> dict:
     return response
 
 
-def deposit(id: str, value: str) -> dict:
-    if id not in database.accounts:
-        response = {"Bem sucedido": False, "Justificativa": "Conta não encontrada"}
+def deposit(data_deposit: dict) -> dict:
+    if data_deposit["CPF"] not in database.accounts:
+        response = {"Bem sucedido": False, "Justificativa": "Usuário não encontrado"}
         return response
 
-    with database.accounts[id].lock:
-        response = database.accounts[id].deposit(value)
+    account = database.find_account(data_deposit["CPF"], data_deposit["ID"])
+
+    if account == None:
+        response = {"Bem sucedido": False, "Justificativa": "Conta não encontrado"}
+        return response
+
+    with account.lock:
+        response = account.deposit(data_deposit["Valor"])
     return response
 
 
-def withdraw(id: str, value: str) -> dict:
-    if id not in database.accounts:
-        response = {"Bem sucedido": False, "Justificativa": "Conta não encontrada"}
+def withdraw(data_withdraw: dict) -> dict:
+    if data_withdraw["CPF"] not in database.accounts:
+        response = {"Bem sucedido": False, "Justificativa": "Usuário não encontrado"}
         return response
 
-    with database.accounts[id].lock:
-        response = database.accounts[id].withdraw(value)
+    account = database.find_account(data_withdraw["CPF"], data_withdraw["ID"])
+
+    if account == None:
+        response = {"Bem sucedido": False, "Justificativa": "Conta não encontrado"}
+        return response
+
+    with account.lock:
+        response = account.withdraw(data_withdraw["Valor"])
     return response
 
 
@@ -124,7 +139,7 @@ def receive_transfer(data_transfer: dict) -> dict:
 
 
 def calculate_id() -> str:
-    id = "AC" + str(len(database.accounts))
+    id = "AC" + str(database.count_accounts)
     return id
 
 
@@ -138,4 +153,7 @@ def show_all() -> dict:
     print("\n--- CONTAS ---")
     for key in database.accounts.keys():
         print()
-        database.accounts[key].show_attributes()
+        print("Contas do usuário: ", key )
+        for i in range(len(database.accounts[key])):
+            print()
+            database.accounts[key][i].show_attributes()

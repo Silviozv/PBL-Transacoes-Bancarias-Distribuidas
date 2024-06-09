@@ -11,16 +11,17 @@ class Database:
         self.accounts = {}
         self.users = {}
 
-        self.ip_bank = socket.gethostbyname(socket.gethostname())
+        self.count_accounts = 0
 
+        self.ip_bank = socket.gethostbyname(socket.gethostname())
         self.lock = threading.Lock()
 
-    def find_account_by_key(self, key: str) -> dict:
-        data_search = {"Conta encontrada": False}
+    def find_account(self, cpf: str, id: str) -> object:
+        list_accounts = self.accounts[cpf]
 
-        for id in self.accounts.keys():
-            if self.accounts[id].key == key:
-                data_search["ID conta"] = id
-                data_search["Conta encontrada"] = True
+        account = None
+        for i in range(len(list_accounts)):
+            if list_accounts[i].id == id:
+                account = list_accounts[i]
 
-        return data_search
+        return account

@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, json
+from flask import Flask, jsonify, json, request
 import impl.bank_impl as impl
 
 app = Flask(__name__)
@@ -16,10 +16,10 @@ def show_all():
     return jsonify(impl.show_all()), 200
 
 
-@app.route('/register/user/<string:cpf>/<string:name>', methods=['POST'])
-def register_user(cpf: str, name: str):
+@app.route('/register/user', methods=['POST'])
+def register_user():
 
-    data_user = {"CPF": cpf, "Nome": name}
+    data_user = request.json
     response = impl.register_user(data_user)
 
     if response["Bem sucedido"] == True:
@@ -28,12 +28,10 @@ def register_user(cpf: str, name: str):
         return jsonify(response), 404
 
 
-@app.route('/register/account/<string:type_account>/<string:cpfs>', methods=['POST'])
-def register_account(type_account: str, cpfs: str):
+@app.route('/register/account', methods=['POST'])
+def register_account():
 
-    type_account = type_account.split("-")
-    cpfs = cpfs.split('-')
-    data_account = {"Tipo de conta": type_account, "CPFs": cpfs}
+    data_account = request.json
     response = impl.register_account(data_account)
 
     if response["Bem sucedido"] == True:
@@ -42,10 +40,11 @@ def register_account(type_account: str, cpfs: str):
         return jsonify(response), 404
 
 
-@app.route('/deposit/<string:id>/<string:value>', methods=['PATCH'])
-def deposit_value(id: str, value: str):
+@app.route('/deposit', methods=['PATCH'])
+def deposit_value():
 
-    response = impl.deposit(id, value)
+    data_deposit = request.json
+    response = impl.deposit(data_deposit)
 
     if response["Bem sucedido"] == True:
         return jsonify(response), 200
@@ -53,10 +52,11 @@ def deposit_value(id: str, value: str):
         return jsonify(response), 404
 
 
-@app.route('/withdraw/<string:id>/<string:value>', methods=['PATCH'])
-def withdraw_value(id: str, value: str):
+@app.route('/withdraw', methods=['PATCH'])
+def withdraw_value():
 
-    response = impl.withdraw(id, value)
+    data_withdraw = request.json
+    response = impl.withdraw(data_withdraw)
 
     if response["Bem sucedido"] == True:
         return jsonify(response), 200
@@ -85,6 +85,9 @@ def receive_transfer_value(value: str, key_recipient: str):
     else:
         return jsonify(response), 404
 
+################################################################
+
+################################################################
 
 def start():
     app.run(port=5070, host='0.0.0.0')
