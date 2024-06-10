@@ -64,11 +64,23 @@ def withdraw_value():
         return jsonify(response), 404
 
 
-@app.route('/request_add_bank', methods=['POST'])
-def request_add_bank():
+@app.route('/send_request_add_bank', methods=['POST'])
+def send_request_add_bank():
 
     data_request = request.json
-    response = impl.request_add_bank(data_request["IP banco"], data_request["IPs registrados no remetente"])
+    response = impl.send_request_add_bank(data_request["IP banco"])
+
+    if response["Bem sucedido"] == True:
+        return jsonify(response), 200
+    else:
+        return jsonify(response), 404
+
+
+@app.route('/receive_request_add_bank', methods=['POST'])
+def receive_request_add_bank():
+
+    data_request = request.json
+    response = impl.receive_request_add_bank(data_request["IP banco"])
 
     if response["Bem sucedido"] == True:
         return jsonify(response), 200

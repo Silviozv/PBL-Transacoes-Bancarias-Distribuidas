@@ -7,40 +7,49 @@ from model.user import User
 database = Database()
 
 
-def request_add_bank(ip_bank: str, ips_registered_sender: list):
-    if ip_bank in database.banks:
-        response = {"Bem sucedido": False, "Justificativa": "O banco já está adicionado"}
-        return response
-
+def send_request_add_bank(ip_bank: str):
     try:
-        url = (f"http://{ip_bank}:5070/")
-        requests.head(url)
-        database.add_bank(ip_bank)
-        response = {"Bem sucedido": True}
+        url = (f"http://{ip_bank}:5070/receive_request_add_bank")
+        data = {"IP banco": database.ip_bank}
+        response = requests.post(url, json=data)
+
+        if response["Bem sucedido"] == True:
+            if ip_bank not in database.banks:
+                database.add_bank(ip_bank)
+
     except (requests.exceptions.ConnectionError) as e:
         response = {"Bem sucedido": False, "Justificativa": "Não foi possível conectar ao banco"}
         return response
 
-    for ip in ips_registered_sender:
-        if ip not in database.banks:
-            try:
-                url = (f"http://{ip}:5070/")
-                requests.head(url)
-                database.add_bank(ip)
-            except (requests.exceptions.ConnectionError) as e:
-                pass
+    return response
 
-    list_ips_return = database.banks.copy()
-    for ip in ips_registered_sender:
-        if ip in list_ips_return:
-            list_ips_return.remove(ip)
 
-    response["Novos IPs encontrados"] = list_ips_return
+def receive_request_add_bank(ip_bank: str):
+    try:
+        url = (f"http://{ip_bank}:5070/")
+        requests.head(url)
+        if ip_bank not in database.banks:
+            database.add_bank(ip_bank)
+        response = {"Bem sucedido": True}
+
+    except (requests.exceptions.ConnectionError) as e:
+        response = {"Bem sucedido": False, "Justificativa": "Não foi possível conectar ao banco"}
+
     return response
 
 
 def check_leader():
     while True:
+        while len(database.banks) == 1:
+            pass
+
+        '''
+        Preciso ver a lógica da eleição
+        
+        while database.find_priority_bank() != database.leader:
+            pass
+        '''
+
         try:
             url = (f"http://{database.leader}:5070/verify_leadership")
             status_code = requests.get(url).status_code
@@ -69,17 +78,13 @@ def verify_leadership():
     return response
 
 
+def start_election():
+    pass
+
+
 def receive_election_request(ip_candidate: str):
     while database.flag_election == True:
         pass
-
-    if database.leader != "":
-        url = (f"/verify_leadership")
-        status_code = requests.get(url).status_code
-
-        if status_code == 200:
-            response = {"Voto": False, "Líder já eleito": True}
-            return response
 
     with database.lock:
         database.flag_election = True

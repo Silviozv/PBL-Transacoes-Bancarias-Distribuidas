@@ -43,13 +43,14 @@ class Database:
     def find_priority_bank(self) -> str:
         ip_bank = ""
         for i in range(len(self.banks)):
-            number = int(self.banks[i].replace(".", ""))
-            if ip_bank == "":
-                lower_number = number
-                ip_bank = self.banks[i]
-            elif number < lower_number:
-                lower_number = number
-                ip_bank = self.banks[i]
+            if self.banks_recconection[self.banks[i]] == False:
+                number = int(self.banks[i].replace(".", ""))
+                if ip_bank == "":
+                    lower_number = number
+                    ip_bank = self.banks[i]
+                elif number < lower_number:
+                    lower_number = number
+                    ip_bank = self.banks[i]
 
         return ip_bank
 
@@ -59,8 +60,9 @@ class Database:
                 url = (f"http://{self.banks[i]}:5070/")
                 requests.head(url)
             except (requests.exceptions.ConnectionError) as e:
-                self.banks_recconection[self.banks[i]] = True
-                threading.Thread( target=self.loop_reconnection(), args=(self.banks[i])).start()
+                if self.banks_recconection[self.banks[i]] == False:
+                    self.banks_recconection[self.banks[i]] = True
+                    threading.Thread( target=self.loop_reconnection(), args=(self.banks[i])).start()
 
     def loop_reconnection(self, ip_bank: str):
         loop = True
@@ -69,6 +71,6 @@ class Database:
                 url = (f"http://{ip_bank}:5070/")
                 requests.head(url)
                 loop = False
-                self.banks_recconection[self.banks[i]] = False
+                self.banks_recconection[ip_bank] = False
             except (requests.exceptions.ConnectionError) as e:
                 time.sleep(2.5)
