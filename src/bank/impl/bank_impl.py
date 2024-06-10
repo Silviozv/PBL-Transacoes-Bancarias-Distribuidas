@@ -1,9 +1,102 @@
 import requests
+import time
 from model.database import Database
 from model.account import Account
 from model.user import User
 
 database = Database()
+
+
+def request_add_bank(ip_bank: str, ips_registered_sender: list):
+    if ip_bank in database.banks:
+        response = {"Bem sucedido": False, "Justificativa": "O banco já está adicionado"}
+        return response
+
+    try:
+        url = (f"http://{ip_bank}:5070/")
+        requests.head(url)
+        database.add_bank(ip_bank)
+        response = {"Bem sucedido": True}
+    except (requests.exceptions.ConnectionError) as e:
+        response = {"Bem sucedido": False, "Justificativa": "Não foi possível conectar ao banco"}
+        return response
+
+    for ip in ips_registered_sender:
+        if ip not in database.banks:
+            try:
+                url = (f"http://{ip}:5070/")
+                requests.head(url)
+                database.add_bank(ip)
+            except (requests.exceptions.ConnectionError) as e:
+                pass
+
+    list_ips_return = database.banks.copy()
+    for ip in ips_registered_sender:
+        if ip in list_ips_return:
+            list_ips_return.remove(ip)
+
+    response["Novos IPs encontrados"] = list_ips_return
+    return response
+
+
+def check_leader():
+    while True:
+        try:
+            url = (f"http://{database.leader}:5070/verify_leadership")
+            status_code = requests.get(url).status_code
+            time.sleep(2)
+
+            if status_code == 404:
+                raise requests.exceptions.ConnectionError
+
+        except (requests.exceptions.ConnectionError) as e:
+            database.check_connections()
+            priority_bank = database.find_priority_bank()
+
+            if priority_bank == database.ip_bank:
+                # Começar eleição
+                pass
+            else:
+                time.sleep(2.5)
+
+
+def verify_leadership():
+    if (database.leader == database.ip_bank):
+        response = {"Liderança": True}
+    else:
+        response = {"Liderança": False}
+
+    return response
+
+
+def receive_election_request(ip_candidate: str):
+    while database.flag_election == True:
+        pass
+
+    if database.leader != "":
+        url = (f"/verify_leadership")
+        status_code = requests.get(url).status_code
+
+        if status_code == 200:
+            response = {"Voto": False, "Líder já eleito": True}
+            return response
+
+    with database.lock:
+        database.flag_election = True
+
+    if database.leader == ip_candidate:
+        response = {"Voto": True}
+    elif database.leader != ip_candidate:
+        priority_bank = database.find_priority_bank()
+
+        if priority_bank == ip_candidate:
+            response = {"Voto": True}
+        else:
+            response = {"Voto": False, "Líder já eleito": True, "Candidato": priority_bank}
+
+
+
+
 
 
 def register_user(data_user: dict) -> dict:
@@ -81,6 +174,7 @@ def withdraw(data_withdraw: dict) -> dict:
     return response
 
 
+###########################################################################################
 def send_transfer(data_transfer: dict) -> dict:
     if data_transfer["ID remetente"] not in database.accounts:
         response = {"Bem sucedido": False, "Justificativa": "Conta do remetente não encontrada"}
@@ -136,7 +230,7 @@ def receive_transfer(data_transfer: dict) -> dict:
     else:
         response = {"Bem sucedido": False, "Justificativa": "Chave não encontrada"}
         return response
-
+############################################################################################
 
 def calculate_id() -> str:
     id = "AC" + str(database.count_accounts)
@@ -145,6 +239,12 @@ def calculate_id() -> str:
 
 ### Teste ###
 def show_all() -> dict:
+    print("\n--- BANCOS ---")
+    print()
+    for i in range(len(database.banks)):
+        print(database.banks[i])
+    print()
+
     print("--- USUÁRIOS ---")
     for key in database.users.keys():
         print()
