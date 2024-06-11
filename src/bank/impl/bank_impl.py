@@ -1,5 +1,6 @@
 import requests
 import time
+import threading
 from model.database import Database
 from model.account import Account
 from model.user import User
@@ -7,7 +8,76 @@ from model.user import User
 database = Database()
 
 
-def send_request_add_bank(ip_bank: str):
+def add_consortium(list_ip_banks: list):
+
+    for ip in list_ip_banks:
+        database.add_bank(ip)
+        try:
+            url = (f"http://{ip}:5070/")
+            requests.head(url)
+        except (requests.exceptions.ConnectionError) as e:
+            database.banks_recconection[ip] = True
+            threading.Thread( target=database.loop_reconnection, args=(ip,)).start()
+
+    database.sort_ip_banks()
+    start_system()
+
+
+def check_first_pass_token():
+    response = {"Token está no sistema": database.token_start_pass}
+    return response
+
+
+def start_system():
+    threading.Thread( target=count_time_token).start()
+
+    while database.count_banks_on == 0:
+        pass
+
+    if database.find_first_bank() == database.ip_bank:
+        url = (f"http://{database.find_next_bank()}:5070/check_first_pass_token")
+        response = requests.get(url).json()
+
+        if response["Token está no sistema"] == False:
+            url = (f"http://{database.find_next_bank()}:5070/token_pass")
+            response = requests.post(url).json()
+            database.token_start_pass = True
+
+        database.token_start_pass = True
+
+    else:
+        pass
+
+def receive_token():
+    database.token = True
+    threading.Thread(target=process_packages).start()
+    response = {"Bem sucedido": True}
+    return response
+
+
+def process_packages():
+    while database.time_token < 3:
+        pass
+
+    url = (f"http://{database.find_next_bank()}:5070/token_pass")
+    status_code = requests.post(url).status_code
+
+    if status_code == 200:
+        database.token = False
+        database.time_token = 0
+    else:
+        pass
+
+
+def count_time_token():
+    while True:
+        time.sleep(1)
+        if database.count_banks_on != 0:
+            database.time_token += 1
+
+
+'''
+def send_request_add_bank(ip_bank: str, ip_leader: str):
     try:
         url = (f"http://{ip_bank}:5070/receive_request_add_bank")
         data = {"IP banco": database.ip_bank}
@@ -16,6 +86,7 @@ def send_request_add_bank(ip_bank: str):
         if response["Bem sucedido"] == True:
             if ip_bank not in database.banks:
                 database.add_bank(ip_bank)
+                verify_leadership()
 
     except (requests.exceptions.ConnectionError) as e:
         response = {"Bem sucedido": False, "Justificativa": "Não foi possível conectar ao banco"}
@@ -30,7 +101,8 @@ def receive_request_add_bank(ip_bank: str):
         requests.head(url)
         if ip_bank not in database.banks:
             database.add_bank(ip_bank)
-        response = {"Bem sucedido": True}
+            verify_leadership()
+        response = {"Bem sucedido": True, "IPs bancos registrados": database.banks}
 
     except (requests.exceptions.ConnectionError) as e:
         response = {"Bem sucedido": False, "Justificativa": "Não foi possível conectar ao banco"}
@@ -40,15 +112,14 @@ def receive_request_add_bank(ip_bank: str):
 
 def check_leader():
     while True:
-        while len(database.banks) == 1:
+        while database.count_banks_on() == 0:
             pass
 
-        '''
-        Preciso ver a lógica da eleição
-        
-        while database.find_priority_bank() != database.leader:
-            pass
-        '''
+        if database.find_priority_bank() == database.ip_bank:
+            start_election()
+        else:
+            time.sleep(2.5)
+
 
         try:
             url = (f"http://{database.leader}:5070/verify_leadership")
@@ -70,6 +141,38 @@ def check_leader():
 
 
 def verify_leadership():
+    if database.find_priority_bank() == database.ip_bank:
+        start_election()
+    else:
+        time.sleep(3)
+
+def start_election():
+    elected = True
+    for ip_bank in database.banks:
+        url = (f"http://{ip_bank}:5070/election_request")
+        data = {"IP banco": ip_bank}
+        response = requests.get(url, json=data)
+
+        if response["Voto"] == False:
+            pass
+
+    if elected == True:
+        for ip_bank in database.banks:
+            url = (f"http://{ip_bank}:5070/confirm_election")
+            data = {"IP banco": ip_bank}
+            response = requests.get(url, json=data)
+
+        database.leader = database.ip_bank
+
+def confirm_election(ip_bank: str):
+    database.leader = ip_bank
+    response = {"Bem sucedido": True}
+    return response
+
+
+
+
+def verify_leadership():
     if (database.leader == database.ip_bank):
         response = {"Liderança": True}
     else:
@@ -77,9 +180,6 @@ def verify_leadership():
 
     return response
 
-
-def start_election():
-    pass
 
 
 def receive_election_request(ip_candidate: str):
@@ -89,17 +189,17 @@ def receive_election_request(ip_candidate: str):
     with database.lock:
         database.flag_election = True
 
-    if database.leader == ip_candidate:
+    priority_bank = database.find_priority_bank()
+    if priority_bank == ip_candidate:
         response = {"Voto": True}
-    elif database.leader != ip_candidate:
-        priority_bank = database.find_priority_bank()
+    else:
+        response = {"Voto": False, "Candidato": priority_bank}
 
-        if priority_bank == ip_candidate:
-            response = {"Voto": True}
-        else:
-            response = {"Voto": False, "Líder já eleito": True, "Candidato": priority_bank}
+    with database.lock:
+        database.flag_election = False
 
-
+    return response
+'''
 
 
 

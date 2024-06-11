@@ -64,6 +64,31 @@ def withdraw_value():
         return jsonify(response), 404
 
 
+@app.route('/check_first_pass_token', methods=['GET'])
+def check_first_pass_token():
+
+    response = impl.check_first_pass_token()
+
+    if response["Token está no sistema"] == True:
+        return jsonify(response), 200
+    else:
+        return jsonify(response), 404
+
+
+@app.route('/token_pass', methods=['POST'])
+def token_pass():
+
+    response = impl.receive_token()
+
+    if response["Bem sucedido"] == True:
+        return jsonify(response), 200
+    else:
+        return jsonify(response), 404
+
+
+
+
+'''
 @app.route('/send_request_add_bank', methods=['POST'])
 def send_request_add_bank():
 
@@ -88,26 +113,33 @@ def receive_request_add_bank():
         return jsonify(response), 404
 
 
-@app.route('/verify_leadership', methods=['GET'])
-def verify_leadership():
-
-    response = impl.verify_leadership()
-
-    if response["Liderança"] == True:
-        return response, 200
-    else:
-        return response, 404
-
-
-@app.route('/election_request', methods=['PATCH'])
+@app.route('/election_request', methods=['GET'])
 def election_request():
 
     data_election = request.json
+    response = impl.election_request(data_election["IP banco"])
+
+    if response["Voto"] == True:
+        return jsonify(response), 200
+    else:
+        return jsonify(response), 404
+
+
+@app.route('/confirm_election', methods=['PATCH'])
+def confirm_election():
+
+    data_election = request.json
+    response = impl.confirm_election(data_election["IP banco"])
+
+    if response["Voto"] == True:
+        return jsonify(response), 200
+    else:
+        return jsonify(response), 404
+'''
 
 
 
-
-################################################################
+'''
 @app.route('/send_transfer/<string:id_sender>/<string:value>/<string:key_recipient>/<string:ip_bank>', methods=['PATCH'])
 def send_transfer_value(id_sender: str, value: str, key_recipient: str, ip_bank: str):
 
@@ -128,8 +160,7 @@ def receive_transfer_value(value: str, key_recipient: str):
         return jsonify(response), 200
     else:
         return jsonify(response), 404
-
-################################################################
+'''
 
 def start():
     app.run(port=5070, host='0.0.0.0')
