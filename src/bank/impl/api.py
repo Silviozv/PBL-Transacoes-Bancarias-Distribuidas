@@ -1,13 +1,19 @@
 from flask import Flask, jsonify, json, request
 import impl.bank_impl as impl
+import threading
 
 app = Flask(__name__)
 
 
-@app.route('/', methods=['HEAD'])
-def check_connection():
+@app.route('/ready_for_connection', methods=['GET'])
+def ready_for_connection():
 
-    return '', 200
+    response = impl.ready_for_connection()
+
+    if response["Bem sucedido"] == True:
+        return jsonify(response), 200
+    else:
+        return jsonify(response), 404
 
 
 @app.route('/show', methods=['GET'])
@@ -15,7 +21,7 @@ def show_all():
 
     return jsonify(impl.show_all()), 200
 
-
+'''
 @app.route('/register/user', methods=['POST'])
 def register_user():
 
@@ -26,7 +32,6 @@ def register_user():
         return jsonify(response), 200
     else:
         return jsonify(response), 404
-
 
 @app.route('/register/account', methods=['POST'])
 def register_account():
@@ -62,7 +67,7 @@ def withdraw_value():
         return jsonify(response), 200
     else:
         return jsonify(response), 404
-
+'''
 
 @app.route('/check_first_pass_token', methods=['GET'])
 def check_first_pass_token():
@@ -88,58 +93,7 @@ def token_pass():
 
 
 
-'''
-@app.route('/send_request_add_bank', methods=['POST'])
-def send_request_add_bank():
-
-    data_request = request.json
-    response = impl.send_request_add_bank(data_request["IP banco"])
-
-    if response["Bem sucedido"] == True:
-        return jsonify(response), 200
-    else:
-        return jsonify(response), 404
-
-
-@app.route('/receive_request_add_bank', methods=['POST'])
-def receive_request_add_bank():
-
-    data_request = request.json
-    response = impl.receive_request_add_bank(data_request["IP banco"])
-
-    if response["Bem sucedido"] == True:
-        return jsonify(response), 200
-    else:
-        return jsonify(response), 404
-
-
-@app.route('/election_request', methods=['GET'])
-def election_request():
-
-    data_election = request.json
-    response = impl.election_request(data_election["IP banco"])
-
-    if response["Voto"] == True:
-        return jsonify(response), 200
-    else:
-        return jsonify(response), 404
-
-
-@app.route('/confirm_election', methods=['PATCH'])
-def confirm_election():
-
-    data_election = request.json
-    response = impl.confirm_election(data_election["IP banco"])
-
-    if response["Voto"] == True:
-        return jsonify(response), 200
-    else:
-        return jsonify(response), 404
-'''
-
-
-
-'''
+''' RECEBIMENTO E TRANSFERÊNCIA
 @app.route('/send_transfer/<string:id_sender>/<string:value>/<string:key_recipient>/<string:ip_bank>', methods=['PATCH'])
 def send_transfer_value(id_sender: str, value: str, key_recipient: str, ip_bank: str):
 
@@ -163,4 +117,6 @@ def receive_transfer_value(value: str, key_recipient: str):
 '''
 
 def start():
-    app.run(port=5070, host='0.0.0.0')
+    list = ["192.168.0.102", "192.168.0.102"]
+    threading.Thread(target=impl.add_consortium, args=(list,)).start()
+    app.run(port=5090, host='0.0.0.0')
