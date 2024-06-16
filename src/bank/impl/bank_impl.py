@@ -33,7 +33,7 @@ def ready_for_connection():
 
 
 def check_first_pass_token():
-    response = {"Token está no sistema": database.token_start_pass}
+    response = {"Token está no sistema": database.token.is_passing}
     return response
 
 
@@ -54,17 +54,17 @@ def start_system():
             #url = (f"http://{database.find_next_bank()}:5070/token_pass")
             url = (f"http://{database.ip_bank}:{database.find_next_bank()}/token_pass")
             response = requests.post(url).json()
-            database.token_start_pass = True
+            database.token.is_passing = True
 
-        database.token_start_pass = True
+        database.token.is_passing = True
 
 
 def receive_token():
-    database.token = True
+    database.token.it_has = True
     threading.Thread(target=process_packages).start()
     '''response = {"Bem sucedido": True}
     return response'''
-    print("Tenho o token: ", database.token)
+    print("Tenho o token: ", database.token.it_has)
     #url = (f"http://{database.find_next_bank()}:5070/token_pass")
     response = {"Bem sucedido": True}
     return response
@@ -78,16 +78,16 @@ def process_packages():
     status_code = requests.post(url).status_code
 
     if status_code == 200:
-        database.token = False
-        print("Tenho o token: ", database.token)
-        database.time_token = 0
+        database.token.it_has = False
+        print("Tenho o token: ", database.token.it_has)
+        database.token.time = 0
 
 '''
 def count_time_token():
     while True:
         time.sleep(1)
         if database.count_banks_on != 0:
-            database.time_token += 1
+            database.token.time += 1
 '''
 
 

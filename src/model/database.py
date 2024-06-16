@@ -2,6 +2,7 @@ import threading
 import socket
 import requests
 import time
+from model.token import Token
 
 class Database:
     accounts: dict
@@ -11,7 +12,7 @@ class Database:
 
     def __init__(self):
         ##
-        self.port = "5090"
+        self.port = "5080"
         ##
         self.ip_bank = socket.gethostbyname(socket.gethostname())
         #self.banks = [self.ip_bank]
@@ -25,9 +26,7 @@ class Database:
         self.packages = {}
 
         self.ready_for_connection = False
-        self.token = False
-        self.token_start_pass = False
-        self.time_token = 0
+        self.token = Token()
 
         self.lock = threading.Lock()
 
