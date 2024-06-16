@@ -10,21 +10,18 @@ database = Database()
 
 def add_consortium(list_ip_banks: list):
     for i in range(len(list_ip_banks)):
-        #database.add_bank(list_ip_banks[i])
-        database.add_bank(i)
+        database.add_bank(list_ip_banks[i])
         try:
             #url = (f"http://{list_ip_banks[i]}:5070/ready_for_connection")
-            url = (f"http://{list_ip_banks[i]}:{database.list_ports[i+1]}/ready_for_connection")
+            url = (f"http://{database.ip_bank}:{list_ip_banks[i]}/ready_for_connection")
             status_code = requests.get(url, timeout=2).status_code
 
             if status_code != 200:
                 raise requests.exceptions.ConnectionError
 
         except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout) as e:
-            #database.banks_recconection[list_ip_banks[i]] = True
-            database.banks_recconection[database.list_ports[i+1]] = True
-            #threading.Thread( target=database.loop_reconnection, args=(list_ip_banks[i],)).start()
-            threading.Thread(target=database.loop_reconnection, args=(i+1,)).start()
+            database.banks_recconection[list_ip_banks[i]] = True
+            threading.Thread( target=database.loop_reconnection, args=(list_ip_banks[i],)).start()
 
     database.sort_ip_banks()
     start_system()
@@ -54,9 +51,7 @@ def start_system():
         response = requests.get(url).json()
 
         if response["Token está no sistema"] == False:
-            print("Token nao esta no sistema")
             #url = (f"http://{database.find_next_bank()}:5070/token_pass")
-            print("requisicao: ", (f"http://{database.ip_bank}:{database.find_next_bank()}/token_pass"))
             url = (f"http://{database.ip_bank}:{database.find_next_bank()}/token_pass")
             response = requests.post(url).json()
             database.token_start_pass = True
@@ -69,7 +64,7 @@ def receive_token():
     threading.Thread(target=process_packages).start()
     '''response = {"Bem sucedido": True}
     return response'''
-    print("Recebi")
+    print("Tenho o token: ", database.token)
     #url = (f"http://{database.find_next_bank()}:5070/token_pass")
     response = {"Bem sucedido": True}
     return response
@@ -84,6 +79,7 @@ def process_packages():
 
     if status_code == 200:
         database.token = False
+        print("Tenho o token: ", database.token)
         database.time_token = 0
 
 '''

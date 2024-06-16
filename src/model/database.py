@@ -11,11 +11,11 @@ class Database:
 
     def __init__(self):
         ##
-        self.list_ports = ["5090", "5070", "5080"]
         self.port = "5090"
         ##
         self.ip_bank = socket.gethostbyname(socket.gethostname())
-        self.banks = [self.ip_bank]
+        #self.banks = [self.ip_bank]
+        self.banks = [self.port]
         #self.banks_recconection = {self.ip_bank: False}
         self.banks_recconection = {self.port: False}
         self.index_actual_bank = None
@@ -36,39 +36,33 @@ class Database:
         with self.lock:
             #self.banks.append(ip_bank)
             #self.banks_recconection[ip_bank] = False
-            self.banks.append(self.ip_bank)
-            self.banks_recconection[self.list_ports[int(ip_bank)+1]] = False
+            self.banks.append(ip_bank)
+            self.banks_recconection[ip_bank] = False
 
     # Teste
     def count_banks_on(self):
         count = 0
-        #for ip in self.banks_recconection.keys():
-        for port in self.list_ports:
+        for ip in self.banks_recconection.keys():
             #if ip != self.ip_bank and self.banks_recconection[ip] == False:
-            if port != self.port and self.banks_recconection[port] == False:
+            if ip != self.port and self.banks_recconection[ip] == False:
                 count += 1
-
         return count
 
     # Teste
     def sort_ip_banks(self):
         for i in range(1, len(self.banks)):
             insert_index = i
-            #current_value = self.banks.pop(i)
-            current_value = self.list_ports.pop(i)
+            current_value = self.banks.pop(i)
             for j in range(i - 1, -1, -1):
-                #if int(self.banks[j].replace(".","")) > int(current_value.replace(".","")):
-                if int(self.list_ports[j]) > int(current_value):
+                if int(self.banks[j].replace(".","")) > int(current_value.replace(".","")):
                     insert_index = j
-            #self.banks.insert(insert_index, current_value)
-            self.list_ports.insert(insert_index, current_value)
-        print(self.list_ports)
+            self.banks.insert(insert_index, current_value)
         self.find_index_actual_bank()
 
     def find_index_actual_bank(self):
         for i in range(len(self.banks)):
             #if self.banks[i] == self.ip_bank:
-            if self.list_ports[i] == self.port:
+            if self.banks[i] == self.port:
                 self.index_actual_bank = i
                 return
 
@@ -91,20 +85,16 @@ class Database:
                 else:
                     try:
                         #url = (f"http://{self.banks[index]}:5070/ready_for_connection")
-                        url = (f"http://{self.banks[index]}:{self.list_ports[index]}/ready_for_connection")
+                        url = (f"http://{self.ip_bank}:{self.banks[index]}/ready_for_connection")
                         status_code = requests.get(url, timeout=2).status_code
 
                         if status_code == 200:
-                            #next_bank = self.banks[index]
-                            next_bank = self.list_ports[index]
+                            next_bank = self.banks[index]
                             found = True
                     except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout) as e:
-                        #if self.banks_recconection[self.banks[index]] == False:
-                        if self.banks_recconection[self.list_ports[index]] == False:
-                            #self.banks_recconection[self.banks[index]] = True
-                            self.banks_recconection[self.list_ports[index]] = True
-                            #threading.Thread(target=self.loop_reconnection, args=(self.banks[index],)).start()
-                            threading.Thread(target=self.loop_reconnection, args=(index,)).start()
+                        if self.banks_recconection[self.banks[index]] == False:
+                            self.banks_recconection[self.banks[index]] = True
+                            threading.Thread(target=self.loop_reconnection, args=(self.banks[index],)).start()
 
                     index += 1
 
@@ -112,7 +102,6 @@ class Database:
                 found = True
                 #next_bank = self.ip_bank
                 next_bank = self.port
-        print("Proximo banco: ",next_bank)
         return next_bank
 
     # Teste
@@ -126,20 +115,16 @@ class Database:
             if index != self.index_actual_bank:
                 try:
                     # url = (f"http://{self.banks[index]}:5070/ready_for_connection")
-                    url = (f"http://{self.banks[index]}:{self.list_ports[index]}/ready_for_connection")
+                    url = (f"http://{self.ip_bank}:{self.banks[index]}/ready_for_connection")
                     status_code = requests.get(url, timeout=2).status_code
 
                     if status_code == 200:
-                        #first_bank = self.banks[index]
-                        first_bank = self.list_ports[index]
+                        first_bank = self.banks[index]
                         found = True
                 except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout) as e:
-                    #if self.banks_recconection[self.banks[index]] == False:
-                    if self.banks_recconection[self.list_ports[index]] == False:
-                        #self.banks_recconection[self.banks[index]] = True
-                        self.banks_recconection[self.list_ports[index]] = True
-                        #threading.Thread(target=self.loop_reconnection, args=(self.banks[index],)).start()
-                        threading.Thread(target=self.loop_reconnection, args=(index,)).start()
+                    if self.banks_recconection[self.banks[index]] == False:
+                        self.banks_recconection[self.banks[index]] = True
+                        threading.Thread(target=self.loop_reconnection, args=(self.banks[index],)).start()
 
                 index += 1
 
@@ -147,7 +132,6 @@ class Database:
                 #first_bank = self.ip_bank
                 first_bank = self.port
                 found = True
-        print("Peimrio banco: ",first_bank)
 
         return first_bank
 
@@ -157,13 +141,12 @@ class Database:
         while loop == True:
             try:
                 #url = (f"http://{ip_bank}:5070/ready_for_connection")
-                url = (f"http://{self.ip_bank}:{self.list_ports[int(ip_bank)]}/ready_for_connection")
+                url = (f"http://{self.ip_bank}:{ip_bank}/ready_for_connection")
                 status_code = requests.get(url, timeout=2).status_code
 
                 if status_code == 200:
                     loop = False
-                    # self.banks_recconection[ip_bank] = False
-                    self.banks_recconection[self.list_ports[int(ip_bank)]] = False
+                    self.banks_recconection[ip_bank] = False
                 else:
                     raise requests.exceptions.ConnectionError
 

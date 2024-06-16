@@ -117,6 +117,6 @@ def receive_transfer_value(value: str, key_recipient: str):
 '''
 
 def start():
-    list = ["192.168.0.102", "192.168.0.102"]
+    list = ["5080", "5070"]
     threading.Thread(target=impl.add_consortium, args=(list,)).start()
     app.run(port=5090, host='0.0.0.0')
