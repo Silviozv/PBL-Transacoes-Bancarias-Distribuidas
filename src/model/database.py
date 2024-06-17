@@ -27,14 +27,23 @@ class Database:
 
         self.ready_for_connection = False
         self.token = Token()
+        self.token_duplicate_alert = False
+        self.sending_duplicate_token_alert = False
+        # Quando um pacote estiver sendo executado e for recebido o sinal de token duplicado, terminasse de
+        # executar o pacote e depois muda esse atríbuto para poder responder ao que identificou o token duplicado.
+        # fica em um while preso até terminar o pacote, e ai envia a resposta de volta.
+        # Se o alerta for recebido, todas as operações de transferência devem ser abortadas
+        self.processing_package = False
 
         self.lock = threading.Lock()
+
+    def set_token_duplicate_alert(self, token_duplicate_alert: bool):
+        with self.lock:
+            self.token_duplicate_alert = token_duplicate_alert
 
     # Teste
     def add_bank(self, ip_bank: str):
         with self.lock:
-            #self.banks.append(ip_bank)
-            #self.banks_recconection[ip_bank] = False
             self.banks.append(ip_bank)
             self.banks_recconection[ip_bank] = False
 
@@ -82,17 +91,18 @@ class Database:
                     index = 0
 
                 else:
-                    try:
-                        #url = (f"http://{self.banks[index]}:5070/ready_for_connection")
-                        url = (f"http://{self.ip_bank}:{self.banks[index]}/ready_for_connection")
-                        status_code = requests.get(url, timeout=2).status_code
+                    if self.banks_recconection[self.banks[index]] == False:
+                        try:
+                            #url = (f"http://{self.banks[index]}:5070/ready_for_connection")
+                            url = (f"http://{self.ip_bank}:{self.banks[index]}/ready_for_connection")
+                            status_code = requests.get(url, timeout=2).status_code
 
-                        if status_code == 200:
-                            next_bank = self.banks[index]
-                            found = True
-                    except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout) as e:
-                        if self.banks_recconection[self.banks[index]] == False:
-                            self.banks_recconection[self.banks[index]] = True
+                            if status_code == 200:
+                                next_bank = self.banks[index]
+                                found = True
+                        except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout) as e:
+                            with self.lock:
+                                self.banks_recconection[self.banks[index]] = True
                             threading.Thread(target=self.loop_reconnection, args=(self.banks[index],)).start()
 
                     index += 1
@@ -112,17 +122,18 @@ class Database:
         while found == False and index != len(self.banks):
 
             if index != self.index_actual_bank:
-                try:
-                    # url = (f"http://{self.banks[index]}:5070/ready_for_connection")
-                    url = (f"http://{self.ip_bank}:{self.banks[index]}/ready_for_connection")
-                    status_code = requests.get(url, timeout=2).status_code
+                if self.banks_recconection[self.banks[index]] == False:
+                    try:
+                        # url = (f"http://{self.banks[index]}:5070/ready_for_connection")
+                        url = (f"http://{self.ip_bank}:{self.banks[index]}/ready_for_connection")
+                        status_code = requests.get(url, timeout=2).status_code
 
-                    if status_code == 200:
-                        first_bank = self.banks[index]
-                        found = True
-                except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout) as e:
-                    if self.banks_recconection[self.banks[index]] == False:
-                        self.banks_recconection[self.banks[index]] = True
+                        if status_code == 200:
+                            first_bank = self.banks[index]
+                            found = True
+                    except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout) as e:
+                        with self.lock:
+                            self.banks_recconection[self.banks[index]] = True
                         threading.Thread(target=self.loop_reconnection, args=(self.banks[index],)).start()
 
                 index += 1
@@ -145,7 +156,8 @@ class Database:
 
                 if status_code == 200:
                     loop = False
-                    self.banks_recconection[ip_bank] = False
+                    with self.lock:
+                        self.banks_recconection[ip_bank] = False
                 else:
                     raise requests.exceptions.ConnectionError
 
@@ -171,7 +183,8 @@ class Database:
                 requests.head(url)
             except (requests.exceptions.ConnectionError) as e:
                 if self.banks_recconection[self.banks[i]] == False:
-                    self.banks_recconection[self.banks[i]] = True
+                    with self.lock:
+                        self.banks_recconection[self.banks[i]] = True
                     threading.Thread( target=self.loop_reconnection, args=(self.banks[i],)).start()
 
 

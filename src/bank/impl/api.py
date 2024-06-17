@@ -83,13 +83,25 @@ def check_first_pass_token():
 @app.route('/token_pass', methods=['POST'])
 def token_pass():
 
-    response = impl.receive_token()
+    data_token = request.json
+    response = impl.receive_token(data_token)
 
     if response["Bem sucedido"] == True:
         return jsonify(response), 200
     else:
         return jsonify(response), 404
 
+
+@app.route('/alert_token_duplicate', methods=['POST'])
+def alert_token_duplicate():
+
+    data_alert = request.json
+    response = impl.receive_alert_token_duplicate(data_alert)
+
+    if response["Operações suspendidas"] == True:
+        return jsonify(response), 200
+    else:
+        return jsonify(response), 404
 
 
 
@@ -117,6 +129,6 @@ def receive_transfer_value(value: str, key_recipient: str):
 '''
 
 def start():
-    list = ["5080", "5070"]
+    list = ["5070", "5090"]
     threading.Thread(target=impl.add_consortium, args=(list,)).start()
-    app.run(port=5090, host='0.0.0.0')
+    app.run(port=5080, host='0.0.0.0')
