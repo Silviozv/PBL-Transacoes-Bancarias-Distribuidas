@@ -64,6 +64,7 @@ def start_system():
                 response = requests.post(url, json=data).json()
 
             else:
+                # PROBLEMA: o alerta de token duplicado não chegar antes e o outro banco ainda está com o id antigo
                 database.token.set_id(response["ID token"])
 
             database.token.set_is_passing(True)
@@ -152,6 +153,7 @@ def send_alert_token_duplicate():
 
         if first_alert_sent == True:
             database.token.set_is_passing(False)
+            database.token.set_id(None)
             start_system()
 
 
@@ -160,7 +162,8 @@ def receive_alert_token_duplicate(data_alert: dict):
         if data_alert["Primeiro envio de alerta confirmado"] == True:
             database.set_token_duplicate_alert(True)
             database.token.set_is_passing(False)
-            start_system()
+            database.token.set_id(None)
+            threading.Thread(target=start_system).start()
             response = {"Operações suspendidas": True}
 
         else:
@@ -169,7 +172,8 @@ def receive_alert_token_duplicate(data_alert: dict):
                 database.set_token_duplicate_alert(True)
                 database.token.set_it_has(False)
                 database.token.set_is_passing(False)
-                start_system()
+                database.token.set_id(None)
+                threading.Thread(target=start_system).start()
                 response = {"Operações suspendidas": True}
             else:
                 response = {"Operações suspendidas": False, "Justificativa": "Alerta já recebido"}
@@ -185,7 +189,8 @@ def receive_alert_token_duplicate(data_alert: dict):
 
         database.token.set_it_has(False)
         database.token.set_is_passing(False)
-        start_system()
+        database.token.set_id(None)
+        threading.Thread(target=start_system).start()
         return response
 
     else:
