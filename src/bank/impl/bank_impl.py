@@ -111,14 +111,17 @@ def check_token_validity(token_id: str):
             send_alert_token_duplicate()
 
 
-def send_request(url: str, ip_bank: str, data: dict, http_method: str):
+def send_request(url: str, ip_bank: str, data: dict, http_method: str, result: dict):
     if http_method == "POST":
         try:
             response = requests.post(url, json=data)
+            result[ip_bank]["Terminado"] = True
+            result[ip_bank]["Resposta"] = response
         except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout):
             with database.lock:
                 database.banks_recconection[ip_bank] = True
             threading.Thread(target=database.loop_reconnection, args=(ip_bank,)).start()
+            result[ip_bank]["Terminado"] = False
 
 
 def send_alert_token_duplicate():
