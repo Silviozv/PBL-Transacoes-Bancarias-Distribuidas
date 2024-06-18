@@ -12,7 +12,7 @@ class Database:
 
     def __init__(self):
         ##
-        self.port = "5080"
+        self.port = "5090"
         ##
         self.ip_bank = socket.gethostbyname(socket.gethostname())
         #self.banks = [self.ip_bank]
@@ -162,7 +162,7 @@ class Database:
                     raise requests.exceptions.ConnectionError
 
             except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout) as e:
-                time.sleep(2.5)
+                time.sleep(0.2)
 
     # Teste
     def find_account(self, cpf: str, id: str) -> object:

@@ -7,7 +7,6 @@ app = Flask(__name__)
 
 @app.route('/ready_for_connection', methods=['GET'])
 def ready_for_connection():
-
     response = impl.ready_for_connection()
 
     if response["Bem sucedido"] == True:
@@ -18,8 +17,8 @@ def ready_for_connection():
 
 @app.route('/show', methods=['GET'])
 def show_all():
-
     return jsonify(impl.show_all()), 200
+
 
 '''
 @app.route('/register/user', methods=['POST'])
@@ -69,9 +68,9 @@ def withdraw_value():
         return jsonify(response), 404
 '''
 
+
 @app.route('/check_first_pass_token', methods=['GET'])
 def check_first_pass_token():
-
     response = impl.check_first_pass_token()
 
     if response["Token está no sistema"] == True:
@@ -82,7 +81,6 @@ def check_first_pass_token():
 
 @app.route('/token_pass', methods=['POST'])
 def token_pass():
-
     data_token = request.json
     response = impl.receive_token(data_token)
 
@@ -94,15 +92,23 @@ def token_pass():
 
 @app.route('/alert_token_duplicate', methods=['POST'])
 def alert_token_duplicate():
-
     data_alert = request.json
     response = impl.receive_alert_token_duplicate(data_alert)
 
-    if response["Operações suspendidas"] == True:
+    if response["Bem sucedido"] == True:
         return jsonify(response), 200
     else:
         return jsonify(response), 404
 
+
+@app.route('/release_duplication_alert', methods=['POST'])
+def release_duplication_alert():
+    response = impl.release_duplication_alert()
+
+    if response["Bem sucedido"] == True:
+        return jsonify(response), 200
+    else:
+        return jsonify(response), 404
 
 
 ''' RECEBIMENTO E TRANSFERÊNCIA
@@ -128,7 +134,8 @@ def receive_transfer_value(value: str, key_recipient: str):
         return jsonify(response), 404
 '''
 
+
 def start():
-    list = ["5070", "5090"]
+    list = ["5060", "5070", "5080"]
     threading.Thread(target=impl.add_consortium, args=(list,)).start()
-    app.run(port=5080, host='0.0.0.0')
+    app.run(port=5090, host='0.0.0.0')

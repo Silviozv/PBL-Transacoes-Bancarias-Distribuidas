@@ -12,7 +12,7 @@ def add_consortium(list_ip_banks: list):
     for i in range(len(list_ip_banks)):
         database.add_bank(list_ip_banks[i])
         try:
-            #url = (f"http://{list_ip_banks[i]}:5070/ready_for_connection")
+            # url = (f"http://{list_ip_banks[i]}:5070/ready_for_connection")
             url = (f"http://{database.ip_bank}:{list_ip_banks[i]}/ready_for_connection")
             status_code = requests.get(url, timeout=2).status_code
 
@@ -21,11 +21,11 @@ def add_consortium(list_ip_banks: list):
 
         except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout) as e:
             database.banks_recconection[list_ip_banks[i]] = True
-            threading.Thread( target=database.loop_reconnection, args=(list_ip_banks[i],)).start()
+            threading.Thread(target=database.loop_reconnection, args=(list_ip_banks[i],)).start()
 
     database.sort_ip_banks()
     # threading.Thread( target=count_time_token).start()
-    start_system()
+    teste()
 
 
 def ready_for_connection():
@@ -39,6 +39,7 @@ def check_first_pass_token():
 
 
 def start_system():
+    print("REINICIEIIIIIIIIIIIIIIIIIII")
     database.ready_for_connection = True
 
     while database.token.is_passing == False:
@@ -46,39 +47,46 @@ def start_system():
         while database.count_banks_on() == 0:
             pass
 
-        database.set_token_duplicate_alert(False)
-
-        #if database.find_first_bank() == database.ip_bank:
+        # if database.find_first_bank() == database.ip_bank:
         if database.find_first_bank() == database.port:
-            #url = (f"http://{database.find_next_bank()}:5070/check_first_pass_token")
+            # url = (f"http://{database.find_next_bank()}:5070/check_first_pass_token")
             url = (f"http://{database.ip_bank}:{database.find_next_bank()}/check_first_pass_token")
             response = requests.get(url).json()
 
             if response["Token está no sistema"] == False:
-                #id = database.token.create_token(database.ip_bank)
+                # id = database.token.create_token(database.ip_bank)
                 id = database.token.create_token(database.port)
                 database.token.set_id(id)
                 data = {"ID token": id}
-                #url = (f"http://{database.find_next_bank()}:5070/token_pass")
+                # url = (f"http://{database.find_next_bank()}:5070/token_pass")
                 url = (f"http://{database.ip_bank}:{database.find_next_bank()}/token_pass")
                 response = requests.post(url, json=data).json()
+                print("ENVIEI O PRIMEIROOOOOOOOOOOOOOOOOOO")
 
-            else:
-                # PROBLEMA: o alerta de token duplicado não chegar antes e o outro banco ainda está com o id antigo
-                database.token.set_id(response["ID token"])
+            if database.token_duplicate_alert == True:
+                database.set_token_duplicate_alert(False)
 
             database.token.set_is_passing(True)
 
-        else:
-            time.sleep(2.5)
+        time.sleep(2)
 
+
+def teste():
+    database.ready_for_connection = True
+    id = database.token.create_token(database.port)
+    database.token.set_id(id)
+    data = {"ID token": id}
+    # url = (f"http://{database.find_next_bank()}:5070/token_pass")
+    url = (f"http://{database.ip_bank}:5070/token_pass")
+    response = requests.post(url, json=data).json()
+    database.token.set_is_passing(True)
 
 
 def receive_token(data_token: dict):
-    if database.token.is_passing == False:
-        database.token.set_is_passing(True)
-
-    threading.Thread(target=check_token_validity, args=(data_token["ID token"],)).start()
+    if database.token_duplicate_alert == False:
+        if database.token.is_passing == False:
+            database.token.set_is_passing(True)
+        threading.Thread(target=check_token_validity, args=(data_token["ID token"],)).start()
 
     response = {"Bem sucedido": True}
     return response
@@ -86,17 +94,21 @@ def receive_token(data_token: dict):
 
 def check_token_validity(token_id: str):
     if database.token.current_id is None:
+        print("AAAAAAAAAAAAAAAA")
         database.token.set_id(token_id)
         database.token.set_it_has(True)
         process_packages()
 
     elif database.token.current_id == token_id:
+        print("BBBBBBBBBBBBBBBBBBBBBBB")
         database.token.set_it_has(True)
         process_packages()
 
     else:
-        # PROBLEMA: e se dois identificarem o token duplicado?
-        send_alert_token_duplicate()
+        print("ID DIFERENTEEEEEEEEEEE")
+        if database.token_duplicate_alert == False:
+            # PROBLEMA: e se dois identificarem o token duplicado?
+            send_alert_token_duplicate()
 
 
 def send_request(url: str, ip_bank: str, data: dict, http_method: str):
@@ -110,106 +122,122 @@ def send_request(url: str, ip_bank: str, data: dict, http_method: str):
 
 
 def send_alert_token_duplicate():
-    if database.token_duplicate_alert == False:
-        with database.lock:
-            database.sending_duplicate_token_alert = True
-        index = 0
-        continue_broadcast = True
-        first_alert_sent = False
-        while index < len(database.banks) and continue_broadcast == True:
-            #if database.banks_recconection[database.banks[index]] == False and database.banks[index] != database.ip_bank:
-            if database.banks_recconection[database.banks[index]] == False and database.banks[index] != database.port:
+    print("DUPLICACAO DETECTADAAAAAAAAAA")
+    # if database.find_first_bank() == database.ip_bank:
+    if database.find_first_bank() == database.port:
+        threading.Thread(target=treat_duplication, args=("",)).start()
 
-                if first_alert_sent == False:
-                    try:
-                        #data = {"Primeiro envio de alerta confirmado": first_alert_sent, "IP banco": database.ip_bank}
-                        data = {"Primeiro envio de alerta confirmado": first_alert_sent, "IP banco": database.port}
-                        # url = (f"http://{database.banks[index]}:5070/alert_token_duplicate")
-                        url = (f"http://{database.ip_bank}:{database.banks[index]}/alert_token_duplicate")
-                        response = requests.post(url, json=data).json()
+    else:
+        # data = {"Lidar com a duplicação": True, "Emissor do alerta": database.ip_bank}
+        data = {"Lidar com a duplicação": True, "Emissor do alerta": database.port}
+        # url = (f"http://{database.find_first_bank()}:5070/alert_token_duplicate")
+        url = (f"http://{database.ip_bank}:{database.find_first_bank()}/alert_token_duplicate")
+        response = requests.post(url, json=data).json()
 
-                        if response["Operações suspendidas"] == False:
-                            if response["Justificativa"] == "Alerta já recebido":
-                                continue_broadcast = False
-                        else:
-                            first_alert_sent = True
-
-                    except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout):
-                        with database.lock:
-                            database.banks_recconection[database.banks[index]] = True
-                        threading.Thread(target=database.loop_reconnection, args=(database.banks[index],)).start()
-
-                else:
-                    # data = {"Primeiro envio de alerta confirmado": first_alert_sent, "IP banco": database.ip_bank}
-                    data = {"Primeiro envio de alerta confirmado": first_alert_sent, "IP banco": database.port}
-                    # url = (f"http://{database.banks[index]}:5070/alert_token_duplicate")
-                    url = (f"http://{database.ip_bank}:{database.banks[index]}/alert_token_duplicate")
-                    threading.Thread(target=send_request, args=(url, database.banks[index], data, "POST",)).start()
-
-            index += 1
-
-        with database.lock:
-            database.sending_duplicate_token_alert = False
-
-        if first_alert_sent == True:
+        if response["Bem sucedido"] == True:
+            print("AVISEIIIIIIIIIIIIIIIIIIIIIIIII")
+            database.set_token_duplicate_alert(True)
+            database.token.set_it_has(False)
             database.token.set_is_passing(False)
             database.token.set_id(None)
             start_system()
 
 
 def receive_alert_token_duplicate(data_alert: dict):
-    if database.sending_duplicate_token_alert == True:
-        if data_alert["Primeiro envio de alerta confirmado"] == True:
-            database.set_token_duplicate_alert(True)
-            database.token.set_is_passing(False)
-            database.token.set_id(None)
-            threading.Thread(target=start_system).start()
-            response = {"Operações suspendidas": True}
-
+    if data_alert["Lidar com a duplicação"] == True:
+        if database.token_duplicate_alert == True:
+            response = {"Bem sucedido": False, "Alerta já recebido": True}
+            return response
         else:
-            #if int(data_alert["IP banco"].replace(".","")) < int(database.ip_bank.replace(".","")):
-            if int(data_alert["IP banco"].replace(".","")) < int(database.port):
-                database.set_token_duplicate_alert(True)
-                database.token.set_it_has(False)
-                database.token.set_is_passing(False)
-                database.token.set_id(None)
-                threading.Thread(target=start_system).start()
-                response = {"Operações suspendidas": True}
-            else:
-                response = {"Operações suspendidas": False, "Justificativa": "Alerta já recebido"}
+            threading.Thread(target=treat_duplication, args=(data_alert["Emissor do alerta"],)).start()
+            response = {"Bem sucedido": True}
+            return response
 
-        return response
-
-    if database.token_duplicate_alert == False:
-        database.set_token_duplicate_alert(True)
-        response = {"Operações suspendidas": True}
-
+    else:
         while database.processing_package == True:
             pass
 
+        database.set_token_duplicate_alert(True)
         database.token.set_it_has(False)
         database.token.set_is_passing(False)
         database.token.set_id(None)
         threading.Thread(target=start_system).start()
+
+        response = {"Bem sucedido": True}
         return response
 
-    else:
-        response = {"Operações suspendidas": False, "Justificativa": "Alerta já recebido"}
 
+### TESTE
+def treat_duplication(alert_sender: str):
+    print("TO TRATANDOOOOOOOOOO")
+    database.set_token_duplicate_alert(True)
+    database.token.set_it_has(False)
+    database.token.set_is_passing(False)
+    database.token.set_id(None)
+
+    with database.lock:
+        database.sending_duplicate_token_alert = True
+
+    for i in range(len(database.banks)):
+        if database.banks_recconection[database.banks[i]] == False and database.banks[i] != database.port and \
+                database.banks[i] != alert_sender:
+
+            try:
+                data = {"Lidar com a duplicação": False}
+                # url = (f"http://{database.banks[index]}:5070/alert_token_duplicate")
+                url = (f"http://{database.ip_bank}:{database.banks[i]}/alert_token_duplicate")
+                response = requests.post(url, json=data).json()
+
+            except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout):
+                with database.lock:
+                    database.banks_recconection[database.banks[i]] = True
+                threading.Thread(target=database.loop_reconnection, args=(database.banks[i],)).start()
+
+    time.sleep(10)
+
+    for i in range(len(database.banks)):
+        if database.banks_recconection[database.banks[i]] == False and database.banks[i] != database.port:
+
+            try:
+                # url = (f"http://{database.banks[index]}:5070/release_duplication_alert")
+                url = (f"http://{database.ip_bank}:{database.banks[i]}/release_duplication_alert")
+                response = requests.post(url).json()
+
+            except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout):
+                with database.lock:
+                    database.banks_recconection[database.banks[i]] = True
+                threading.Thread(target=database.loop_reconnection, args=(database.banks[i],)).start()
+
+    with database.lock:
+        database.sending_duplicate_token_alert = False
+
+    start_system()
+
+
+def release_duplication_alert():
+    print("LIBEREIIIIIIIIIIIII")
+    database.token.set_id(None)
+    database.set_token_duplicate_alert(False)
+
+    response = {"Bem sucedido": True}
     return response
 
 
 def process_packages():
-    time.sleep(2)
+    time.sleep(4)
 
-    data = {"ID token": database.token.current_id}
-    #url = (f"http://{database.find_next_bank()}:5070/token_pass")
-    url = (f"http://{database.ip_bank}:{database.find_next_bank()}/token_pass")
-    status_code = requests.post(url, json=data).status_code
+    if database.token_duplicate_alert == False:
 
-    if status_code == 200:
-        database.token.set_it_has(False)
-        database.token.time = 0
+        data = {"ID token": database.token.current_id}
+        # url = (f"http://{database.find_next_bank()}:5070/token_pass")
+        url = (f"http://{database.ip_bank}:{database.find_next_bank()}/token_pass")
+        status_code = requests.post(url, json=data).status_code
+
+        if status_code == 200:
+            print("REPASSEI O PRIMEIROOOOOO")
+            database.token.set_it_has(False)
+            database.token.time = 0
+
 
 '''
 def count_time_token():
@@ -326,7 +354,8 @@ def send_transfer(data_transfer: dict) -> dict:
         response = database.accounts[data_transfer["ID remetente"]].withdraw(data_transfer["Valor"])
 
     if response["Bem sucedido"] == True:
-        url = (f"http://{data_transfer['IP banco']}:5070/receive_transfer/{data_transfer['Valor']}/{data_transfer['Chave PIX']}")
+        url = (
+            f"http://{data_transfer['IP banco']}:5070/receive_transfer/{data_transfer['Valor']}/{data_transfer['Chave PIX']}")
         response = requests.patch(url)
 
         if response.status_code == 200:
@@ -352,6 +381,8 @@ def receive_transfer(data_transfer: dict) -> dict:
     else:
         response = {"Bem sucedido": False, "Justificativa": "Chave não encontrada"}
         return response
+
+
 ############################################################################################
 
 def calculate_id() -> str:
@@ -375,7 +406,7 @@ def show_all():
     print("\n--- CONTAS ---")
     for key in database.accounts.keys():
         print()
-        print("Contas do usuário: ", key )
+        print("Contas do usuário: ", key)
         for i in range(len(database.accounts[key])):
             print()
             database.accounts[key][i].show_attributes()
