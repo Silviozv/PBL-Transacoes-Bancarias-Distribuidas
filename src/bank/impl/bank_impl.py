@@ -77,7 +77,7 @@ def teste():
     database.token.set_id(id)
     data = {"ID token": id}
     # url = (f"http://{database.find_next_bank()}:5070/token_pass")
-    url = (f"http://{database.ip_bank}:5070/token_pass")
+    url = (f"http://{database.ip_bank}:5060/token_pass")
     response = requests.post(url, json=data).json()
     database.token.set_is_passing(True)
 
@@ -164,7 +164,7 @@ def receive_alert_token_duplicate(data_alert: dict):
         database.token.set_it_has(False)
         database.token.set_is_passing(False)
         database.token.set_id(None)
-        threading.Thread(target=start_system).start()
+        threading.Thread(target=reset_duplication_alert).start()
 
         response = {"Bem sucedido": True}
         return response
@@ -196,8 +196,12 @@ def treat_duplication(alert_sender: str):
                     database.banks_recconection[database.banks[i]] = True
                 threading.Thread(target=database.loop_reconnection, args=(database.banks[i],)).start()
 
-    time.sleep(10)
+    time.sleep(5)
 
+    with database.lock:
+        database.sending_duplicate_token_alert = False
+
+    '''
     for i in range(len(database.banks)):
         if database.banks_recconection[database.banks[i]] == False and database.banks[i] != database.port:
 
@@ -213,10 +217,19 @@ def treat_duplication(alert_sender: str):
 
     with database.lock:
         database.sending_duplicate_token_alert = False
+    '''
 
     start_system()
 
 
+def reset_duplication_alert():
+    time.sleep(5)
+    database.token.set_id(None)
+    database.set_token_duplicate_alert(False)
+    start_system()
+
+
+'''
 def release_duplication_alert():
     print("LIBEREIIIIIIIIIIIII")
     database.token.set_id(None)
@@ -224,6 +237,7 @@ def release_duplication_alert():
 
     response = {"Bem sucedido": True}
     return response
+'''
 
 
 def process_packages():

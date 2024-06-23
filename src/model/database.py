@@ -162,7 +162,7 @@ class Database:
                     raise requests.exceptions.ConnectionError
 
             except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout) as e:
-                time.sleep(0.2)
+                pass
 
     # Teste
     def find_account(self, cpf: str, id: str) -> object:
