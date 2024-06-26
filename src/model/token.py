@@ -36,3 +36,15 @@ class Token:
         date_time = datetime.now()
         id = (f"{ip_bank}{date_time.time()}{date_time.date()}")
         return id
+
+
+    def create_token_pass_counter(self, banks: list) -> dict:
+        token_pass_counter = {}
+        for i in range(len(banks)):
+            token_pass_counter[banks[i]] = 0
+
+        return token_pass_counter
+    
+    def clear_token_pass_counter(self, token_pass_counter: dict):
+        for key in token_pass_counter.keys():
+            token_pass_counter[key] = 0

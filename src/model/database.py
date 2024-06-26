@@ -12,7 +12,7 @@ class Database:
 
     def __init__(self):
         ##
-        self.port = "5090"
+        self.port = "5080"
         ##
         self.ip_bank = socket.gethostbyname(socket.gethostname())
         #self.banks = [self.ip_bank]
@@ -35,6 +35,8 @@ class Database:
         # Se o alerta for recebido, todas as operações de transferência devem ser abortadas
         self.processing_package = False
 
+        self.count_packages = 0
+
         self.lock = threading.Lock()
 
     def set_token_duplicate_alert(self, token_duplicate_alert: bool):
@@ -46,6 +48,19 @@ class Database:
         with self.lock:
             self.banks.append(ip_bank)
             self.banks_recconection[ip_bank] = False
+
+    def add_package(self, data_package: dict) -> int:
+        id = self.count_packages
+        with self.lock:
+            self.packages[id] = {"Dados": data_package, "Terminado": False, "Bem sucedido": None, "Adicionado ao token": False}
+            self.count_packages += 1
+
+        return id
+
+    def set_send_package_to_execution(self, id: str):
+        with self.lock:
+            self.packages[id]["Adicionado ao token"] = True
+
 
     # Teste
     def count_banks_on(self):

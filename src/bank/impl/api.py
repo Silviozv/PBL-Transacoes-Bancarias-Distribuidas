@@ -101,14 +101,16 @@ def alert_token_duplicate():
         return jsonify(response), 404
 
 
-@app.route('/release_duplication_alert', methods=['POST'])
-def release_duplication_alert():
-    response = impl.release_duplication_alert()
+@app.route('/request_package', methods=['PATCH'])
+def request_package():
+    data_package = request.json
+    response = impl.request_package(data_package)
 
     if response["Bem sucedido"] == True:
         return jsonify(response), 200
     else:
         return jsonify(response), 404
+
 
 
 ''' RECEBIMENTO E TRANSFERÊNCIA
@@ -136,6 +138,6 @@ def receive_transfer_value(value: str, key_recipient: str):
 
 
 def start():
-    list = ["5060", "5070", "5080"]
+    list = ["5090", "5060", "5070"]
     threading.Thread(target=impl.add_consortium, args=(list,)).start()
-    app.run(port=5090, host='0.0.0.0')
+    app.run(port=5080, host='0.0.0.0')

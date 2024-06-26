@@ -25,7 +25,7 @@ def add_consortium(list_ip_banks: list):
 
     database.sort_ip_banks()
     # threading.Thread( target=count_time_token).start()
-    teste()
+    start_system()
 
 
 def ready_for_connection():
@@ -56,11 +56,18 @@ def start_system():
             if response["Token está no sistema"] == False:
                 # id = database.token.create_token(database.ip_bank)
                 id = database.token.create_token(database.port)
+                token_pass_counter = database.token.create_token_pass_counter(database.banks)
                 database.token.set_id(id)
-                data = {"ID token": id}
+
+                data_token = {"ID token": id, "Contadora de passagem do token": token_pass_counter, "Pacotes": []}
+                add_packages_token(data_token)
+                #data_token["Contadora de passagem do token"][database.ip_bank] += 1
+                data_token["Contadora de passagem do token"][database.port] += 1
+                print(data_token)
+
                 # url = (f"http://{database.find_next_bank()}:5070/token_pass")
                 url = (f"http://{database.ip_bank}:{database.find_next_bank()}/token_pass")
-                response = requests.post(url, json=data).json()
+                response = requests.post(url, json=data_token).json()
                 print("ENVIEI O PRIMEIROOOOOOOOOOOOOOOOOOO")
 
             if database.token_duplicate_alert == True:
@@ -86,30 +93,57 @@ def receive_token(data_token: dict):
     if database.token_duplicate_alert == False:
         if database.token.is_passing == False:
             database.token.set_is_passing(True)
-        threading.Thread(target=check_token_validity, args=(data_token["ID token"],)).start()
+        threading.Thread(target=check_token_validity, args=(data_token,)).start()
 
+    print(data_token)
     response = {"Bem sucedido": True}
     return response
 
 
-def check_token_validity(token_id: str):
+def check_token_validity(data_token: dict):
+    if database.token.current_id != None and database.token.current_id != data_token["ID token"]:
+        print("ID DIFERENTEEEEEEEEEEE")
+        if database.token_duplicate_alert == False:
+            # PROBLEMA: e se dois identificarem o token duplicado?
+            send_alert_token_duplicate()
+    
+    else:
+        if database.token.current_id is None:
+            print("AAAAAAAAAAAAAAAA")
+            database.token.set_id(data_token["ID token"])
+
+        database.token.set_it_has(True)
+
+        #if data_token["Contadora de passagem do token"][database.ip_bank] == 1:
+        if data_token["Contadora de passagem do token"][database.port] == 1:
+            print("\nTEM QUE EXECUTAR OS PACOTEEEEEEE\n")
+            # process_packages(data_token) FUNÇÃO PARA EXECUTAR OS PACOTES
+            database.token.clear_token_pass_counter(data_token["Contadora de passagem do token"])
+        
+        #data_token["Contadora de passagem do token"][database.ip_bank] += 1
+        data_token["Contadora de passagem do token"][database.port] += 1
+        add_packages_token(data_token)
+        token_pass(data_token) 
+
+    
+'''
     if database.token.current_id is None:
         print("AAAAAAAAAAAAAAAA")
-        database.token.set_id(token_id)
+        database.token.set_id(data_token["ID token"])
         database.token.set_it_has(True)
-        process_packages()
+        token_pass(data_token)
 
-    elif database.token.current_id == token_id:
+    elif database.token.current_id == data_token["ID token"]:
         print("BBBBBBBBBBBBBBBBBBBBBBB")
         database.token.set_it_has(True)
-        process_packages()
+        token_pass(data_token)
 
     else:
         print("ID DIFERENTEEEEEEEEEEE")
         if database.token_duplicate_alert == False:
             # PROBLEMA: e se dois identificarem o token duplicado?
             send_alert_token_duplicate()
-
+'''
 
 def send_request(url: str, ip_bank: str, data: dict, http_method: str, result: dict):
     if http_method == "POST":
@@ -229,31 +263,47 @@ def reset_duplication_alert():
     start_system()
 
 
-'''
-def release_duplication_alert():
-    print("LIBEREIIIIIIIIIIIII")
-    database.token.set_id(None)
-    database.set_token_duplicate_alert(False)
-
-    response = {"Bem sucedido": True}
-    return response
-'''
+def process_packages(data_token: dict):
+    # Executar os pacotes aqui
+    pass
 
 
-def process_packages():
+def add_packages_token(data_token: dict):
+    for key in database.packages.keys():
+        if database.packages[key]["Adicionado ao token"] == False:
+            #data_token["Pacotes"].append({"ID": key, "Dados": database.packages[key]["Dados"], "Origem": database.ip_bank})
+            data_token["Pacotes"].append({"ID": key, "Dados": database.packages[key]["Dados"], "Origem": database.port})
+            database.set_send_package_to_execution(key)
+
+    print("Pacotes: ", database.packages)
+
+
+def token_pass(data_token: dict):
     time.sleep(4)
 
     if database.token_duplicate_alert == False:
 
-        data = {"ID token": database.token.current_id}
         # url = (f"http://{database.find_next_bank()}:5070/token_pass")
         url = (f"http://{database.ip_bank}:{database.find_next_bank()}/token_pass")
-        status_code = requests.post(url, json=data).status_code
+        status_code = requests.post(url, json=data_token).status_code
 
         if status_code == 200:
             print("REPASSEI O PRIMEIROOOOOO")
             database.token.set_it_has(False)
             database.token.time = 0
+
+
+
+def request_package(data_package: dict):
+    id = database.add_package(data_package)
+    print(database.packages[id])
+
+    while database.packages[id]["Terminado"] == False:
+        pass
+
+    response = {"Bem sucedido": database[id]["Bem sucedido"]}
+    return response
+
 
 
 '''
