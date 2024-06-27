@@ -1,13 +1,18 @@
 from flask import Flask, jsonify, json, request
-import impl.bank_impl as impl
 import threading
 
+import impl.bank_impl as impl
+import impl.register_impl as register_impl
+import impl.token_impl as token_impl
+from model.database import Database
+
 app = Flask(__name__)
+database = Database()
 
 
 @app.route('/ready_for_connection', methods=['GET'])
 def ready_for_connection():
-    response = impl.ready_for_connection()
+    response = impl.ready_for_connection(database)
 
     if response["Bem sucedido"] == True:
         return jsonify(response), 200
@@ -17,26 +22,27 @@ def ready_for_connection():
 
 @app.route('/show', methods=['GET'])
 def show_all():
-    return jsonify(impl.show_all()), 200
+    return jsonify(impl.show_all(database)), 200
 
 
-'''
+
 @app.route('/register/user', methods=['POST'])
 def register_user():
 
     data_user = request.json
-    response = impl.register_user(data_user)
+    response = register_impl.register_user(database, data_user)
 
     if response["Bem sucedido"] == True:
         return jsonify(response), 200
     else:
         return jsonify(response), 404
 
+'''
 @app.route('/register/account', methods=['POST'])
 def register_account():
 
     data_account = request.json
-    response = impl.register_account(data_account)
+    response = register_impl.register_account(database, data_account)
 
     if response["Bem sucedido"] == True:
         return jsonify(response), 200
@@ -48,7 +54,7 @@ def register_account():
 def deposit_value():
 
     data_deposit = request.json
-    response = impl.deposit(data_deposit)
+    response = impl.deposit(database, data_deposit)
 
     if response["Bem sucedido"] == True:
         return jsonify(response), 200
@@ -60,7 +66,7 @@ def deposit_value():
 def withdraw_value():
 
     data_withdraw = request.json
-    response = impl.withdraw(data_withdraw)
+    response = impl.withdraw(database, data_withdraw)
 
     if response["Bem sucedido"] == True:
         return jsonify(response), 200
@@ -71,7 +77,7 @@ def withdraw_value():
 
 @app.route('/check_first_pass_token', methods=['GET'])
 def check_first_pass_token():
-    response = impl.check_first_pass_token()
+    response = token_impl.check_first_pass_token(database)
 
     if response["Token está no sistema"] == True:
         return jsonify(response), 200
@@ -82,7 +88,7 @@ def check_first_pass_token():
 @app.route('/token_pass', methods=['POST'])
 def token_pass():
     data_token = request.json
-    response = impl.receive_token(data_token)
+    response = token_impl.receive_token(database, data_token)
 
     if response["Bem sucedido"] == True:
         return jsonify(response), 200
@@ -93,7 +99,7 @@ def token_pass():
 @app.route('/alert_token_duplicate', methods=['POST'])
 def alert_token_duplicate():
     data_alert = request.json
-    response = impl.receive_alert_token_duplicate(data_alert)
+    response = token_impl.receive_alert_token_duplicate(database, data_alert)
 
     if response["Bem sucedido"] == True:
         return jsonify(response), 200
@@ -104,7 +110,7 @@ def alert_token_duplicate():
 @app.route('/request_package', methods=['PATCH'])
 def request_package():
     data_package = request.json
-    response = impl.request_package(data_package)
+    response = impl.request_package(database, data_package)
 
     if response["Bem sucedido"] == True:
         return jsonify(response), 200
@@ -118,7 +124,7 @@ def request_package():
 def send_transfer_value(id_sender: str, value: str, key_recipient: str, ip_bank: str):
 
     data_transfer = {"ID remetente": id_sender, "Valor": value, "Chave PIX": key_recipient, "IP banco": ip_bank}
-    response = impl.send_transfer(data_transfer)
+    response = impl.send_transfer(database, data_transfer)
     if response["Bem sucedido"] == True:
         return jsonify(response), 200
     else:
@@ -129,7 +135,7 @@ def send_transfer_value(id_sender: str, value: str, key_recipient: str, ip_bank:
 def receive_transfer_value(value: str, key_recipient: str):
 
     data_transfer = {"Valor": value, "Chave PIX": key_recipient}
-    response = impl.receive_transfer(data_transfer)
+    response = impl.receive_transfer(database, data_transfer)
     if response["Bem sucedido"] == True:
         return jsonify(response), 200
     else:
@@ -139,5 +145,5 @@ def receive_transfer_value(value: str, key_recipient: str):
 
 def start():
     list = ["5090", "5060", "5070"]
-    threading.Thread(target=impl.add_consortium, args=(list,)).start()
+    threading.Thread(target=impl.add_consortium, args=(database, list,)).start()
     app.run(port=5080, host='0.0.0.0')
