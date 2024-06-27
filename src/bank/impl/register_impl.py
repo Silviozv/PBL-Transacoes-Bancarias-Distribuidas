@@ -28,23 +28,14 @@ def register_account(database: object, data_account: dict) -> dict:
             response = {"Bem sucedido": False, "Justificativa": "Usuário não encontrado"}
             return response
 
-    id = calculate_id(database)
-    data_account["ID"] = id
-    data_account["Chave"] = str(database.count_accounts)
-    database.count_accounts += 1
+    key = database.calculate_key()
+    data_account["Chave"] = key
     account = Account(data_account)
-    with database.lock:
-        for cpf in data_account["CPFs"]:
-            database.accounts[cpf].append(account)
+    database.add_account(account)
 
     if data_account["Tipo de conta"][0] == "Fisica" and data_account["Tipo de conta"][1] == "Pessoal":
         with database.lock:
-            database.users[account.cpfs[0]].have_physical_account = True
+            database.users[account.cpfs[0]].set_have_physical_account(True)
 
     response = {"Bem sucedido": True}
     return response
-
-
-def calculate_id(database: object) -> str:
-    id = "AC" + str(database.count_accounts)
-    return id

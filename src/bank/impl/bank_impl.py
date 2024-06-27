@@ -20,7 +20,7 @@ def add_consortium(database: object, list_ip_banks: list):
 
     database.sort_ip_banks()
     # threading.Thread( target=count_time_token).start()
-    teste(database)
+    start_system(database)
 
 
 def ready_for_connection(database: object):

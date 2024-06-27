@@ -11,7 +11,6 @@ class Account:
 
     def __init__(self, data_account: dict):
         self.key = data_account["Chave"]  # Números do ID
-        self.id = data_account["ID"]  # AC(Posição na ordem de criação)
         self.type_account = data_account["Tipo de conta"]  # Física (pessoal e conjunta), Jurídica
         self.cpfs = data_account["CPFs"]  # Lista de CPFs
         self.balance = 0
@@ -34,7 +33,6 @@ class Account:
 
     def show_attributes(self):
         print("Chave PIX: ", self.key)
-        print("ID: ", self.id)
         print("Tipo de conta: ", self.type_account)
         print("CPFs: ", self.cpfs)
         print("Saldo: ", self.balance)

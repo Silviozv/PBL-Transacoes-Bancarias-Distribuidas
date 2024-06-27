@@ -12,7 +12,7 @@ class Database:
 
     def __init__(self):
         ##
-        self.port = "5080"
+        self.port = "5060"
         ##
         self.ip_bank = socket.gethostbyname(socket.gethostname())
         #self.banks = [self.ip_bank]
@@ -34,7 +34,7 @@ class Database:
         # fica em um while preso até terminar o pacote, e ai envia a resposta de volta.
         # Se o alerta for recebido, todas as operações de transferência devem ser abortadas
         self.processing_package = False
-
+        self.count_accounts = 0
         self.count_packages = 0
 
         self.lock = threading.Lock()
@@ -48,6 +48,17 @@ class Database:
         with self.lock:
             self.banks.append(ip_bank)
             self.banks_recconection[ip_bank] = False
+
+    def add_account(self, account: object):
+        with self.lock:
+            self.count_accounts += 1
+            for cpf in account.cpfs:
+                self.accounts[cpf].append(account)
+
+    def calculate_key(self) -> str:
+        key = "AC" + str(self.count_accounts)
+        return key
+
 
     def add_package(self, data_package: dict) -> int:
         id = self.count_packages
