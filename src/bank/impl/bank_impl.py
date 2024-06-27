@@ -123,7 +123,17 @@ def send_request(database: object, url: str, ip_bank: str, data: dict, http_meth
 
 ### TESTE
 def process_packages(database: object, data_token: dict):
-    # Executar os pacotes aqui
+    final_response = {"Bem sucedido": False}
+
+    for i in range(len(data_token["Pacotes"])):
+        
+        for j in range(len(data_token["Pacotes"][i])):
+            pass
+
+
+
+
+
     pass
 
 
@@ -150,11 +160,7 @@ def count_time_token():
 
 # PARTE DAS TRANSAÇÕES ANTIGAS
 def deposit(database: object, data_deposit: dict) -> dict:
-    if data_deposit["CPF"] not in database.accounts:
-        response = {"Bem sucedido": False, "Justificativa": "Usuário não encontrado"}
-        return response
-
-    account = database.find_account(data_deposit["CPF"], data_deposit["ID"])
+    account = database.find_account(data_deposit["Chave"])
 
     if account == None:
         response = {"Bem sucedido": False, "Justificativa": "Conta não encontrado"}
@@ -166,11 +172,7 @@ def deposit(database: object, data_deposit: dict) -> dict:
 
 
 def withdraw(database: object, data_withdraw: dict) -> dict:
-    if data_withdraw["CPF"] not in database.accounts:
-        response = {"Bem sucedido": False, "Justificativa": "Usuário não encontrado"}
-        return response
-
-    account = database.find_account(data_withdraw["CPF"], data_withdraw["ID"])
+    account = database.find_account(data_withdraw["Chave"])
 
     if account == None:
         response = {"Bem sucedido": False, "Justificativa": "Conta não encontrado"}
@@ -259,7 +261,4 @@ def show_all(database: object):
     print("\n--- CONTAS ---")
     for key in database.accounts.keys():
         print()
-        print("Contas do usuário: ", key)
-        for i in range(len(database.accounts[key])):
-            print()
-            database.accounts[key][i].show_attributes()
+        database.accounts[key].show_attributes()

@@ -12,7 +12,7 @@ class Database:
 
     def __init__(self):
         ##
-        self.port = "5060"
+        self.port = "5070"
         ##
         self.ip_bank = socket.gethostbyname(socket.gethostname())
         #self.banks = [self.ip_bank]
@@ -52,8 +52,7 @@ class Database:
     def add_account(self, account: object):
         with self.lock:
             self.count_accounts += 1
-            for cpf in account.cpfs:
-                self.accounts[cpf].append(account)
+            self.accounts[account.key] = account
 
     def calculate_key(self) -> str:
         key = "AC" + str(self.count_accounts)
@@ -191,13 +190,11 @@ class Database:
                 pass
 
     # Teste
-    def find_account(self, cpf: str, id: str) -> object:
-        list_accounts = self.accounts[cpf]
-
-        account = None
-        for i in range(len(list_accounts)):
-            if list_accounts[i].id == id:
-                account = list_accounts[i]
+    def find_account(self, key: str) -> object:
+        if key not in self.accounts:
+            account = None
+        else:
+            account = self.accounts[key]
 
         return account
 

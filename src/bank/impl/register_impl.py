@@ -10,7 +10,6 @@ def register_user(database: object, data_user: dict) -> dict:
     user = User(data_user)
     with database.lock:
         database.users[user.cpf] = user
-        database.accounts[user.cpf] = []
 
     response = {"Bem sucedido": True}
     return response

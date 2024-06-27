@@ -49,7 +49,7 @@ def register_account():
     else:
         return jsonify(response), 404
 
-'''
+
 @app.route('/deposit', methods=['PATCH'])
 def deposit_value():
 
@@ -72,7 +72,7 @@ def withdraw_value():
         return jsonify(response), 200
     else:
         return jsonify(response), 404
-'''
+
 
 
 @app.route('/check_first_pass_token', methods=['GET'])
@@ -144,6 +144,6 @@ def receive_transfer_value(value: str, key_recipient: str):
 
 
 def start():
-    list = ["5090", "5080", "5070"]
-    threading.Thread(target=bank_impl.add_consortium, args=(database, list,)).start()
-    app.run(port=5060, host='0.0.0.0')
+    list_banks = ["5090", "5080", "5060"]
+    threading.Thread(target=bank_impl.add_consortium, args=(database, list_banks,)).start()
+    app.run(port=5070, host='0.0.0.0')
