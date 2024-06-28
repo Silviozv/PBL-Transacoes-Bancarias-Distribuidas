@@ -1,7 +1,7 @@
 import time
 import requests
 import threading
-from impl.bank_impl import start_system, add_packages_token
+from impl.bank_impl import start_system, add_packages_token, process_packages
 
 
 def check_first_pass_token(database: object):
@@ -37,7 +37,7 @@ def check_token_validity(database: object, data_token: dict):
         #if data_token["Contadora de passagem do token"][database.ip_bank] == 1:
         if data_token["Contadora de passagem do token"][database.port] == 1:
             print("\nTEM QUE EXECUTAR OS PACOTEEEEEEE\n")
-            # process_packages(data_token) FUNÇÃO PARA EXECUTAR OS PACOTES
+            process_packages(database, data_token) 
             database.token.clear_token_pass_counter(data_token["Contadora de passagem do token"])
         
         #data_token["Contadora de passagem do token"][database.ip_bank] += 1

@@ -17,6 +17,7 @@ def add_consortium(database: object, list_ip_banks: list):
         except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout) as e:
             database.banks_recconection[list_ip_banks[i]] = True
             threading.Thread(target=database.loop_reconnection, args=(list_ip_banks[i],)).start()
+            #pass
 
     database.sort_ip_banks()
     # threading.Thread( target=count_time_token).start()
@@ -123,18 +124,16 @@ def send_request(database: object, url: str, ip_bank: str, data: dict, http_meth
 
 ### TESTE
 def process_packages(database: object, data_token: dict):
+    # FOI IMPLEMENTADA  A TRANSFERÊNCIA, AGORA É NECESSÁRIO FAZER A LÓGICA DO BANCO CENTRAL  
     final_response = {"Bem sucedido": False}
 
     for i in range(len(data_token["Pacotes"])):
-        
-        for j in range(len(data_token["Pacotes"][i])):
-            pass
+        print()
+        for j in range(len(data_token["Pacotes"][i]["Dados"]["Bancos remetentes"])):
+            print("Dado do pacote: ", data_token["Pacotes"][i]["Dados"]["Bancos remetentes"][j])
+            
+        print()
 
-
-
-
-
-    pass
 
 
 def request_package(database: object, data_package: dict):
@@ -166,8 +165,7 @@ def deposit(database: object, data_deposit: dict) -> dict:
         response = {"Bem sucedido": False, "Justificativa": "Conta não encontrado"}
         return response
 
-    with account.lock:
-        response = account.deposit(data_deposit["Valor"])
+    response = account.deposit(data_deposit["Valor"])
     return response
 
 
@@ -178,13 +176,57 @@ def withdraw(database: object, data_withdraw: dict) -> dict:
         response = {"Bem sucedido": False, "Justificativa": "Conta não encontrado"}
         return response
 
-    with account.lock:
-        response = account.withdraw(data_withdraw["Valor"])
+    response = account.withdraw(data_withdraw["Valor"])
     return response
 
 
-###########################################################################################
+# FALTA FAZER O SALDO BLOQUEADO CASO O PACOTE TENHA ALGUM ERRO
 def send_transfer(database: object, data_transfer: dict) -> dict:
+    if data_transfer["Chave remetente"] not in database.accounts:
+        response = {"Bem sucedido": False, "Justificativa": "Conta do remetente não encontrada"}
+
+    else:
+        if database.accounts[data_transfer["Chave remetente"]].balance < float(data_transfer["Valor"]):
+            response = {"Bem sucedido": False, "Justificativa": "Saldo insuficiente"}
+
+        else:
+            #if data_transfer["Banco destinatário"] == database.ip_bank:
+            if data_transfer["Banco destinatário"] == database.port:
+
+                if data_transfer["Chave destinatário"] not in database.accounts:
+                    response = {"Bem sucedido": False, "Justificativa": "Conta do destinatário não encontrada"}
+                else:
+                    database.accounts[data_transfer["Chave remetente"]].withdraw(data_transfer["Valor"])
+                    database.accounts[data_transfer["Chave destinatário"]].deposit(data_transfer["Valor"])
+                    response = {"Bem sucedido": True}
+                
+            else:
+                if database.banks_recconection[data_transfer['Banco destinatário']] == True:
+                    response = {"Bem sucedido": False, "Justificativa": "Banco desconectado"}
+
+                else:
+                    try:
+                        data_receive = {"Chave destinatário": data_transfer["Chave destinatário"], "Valor": data_transfer["Valor"]}
+                        # url = (f"http://{data_transfer['Banco destinatário']}:5060/receive_transfer")
+                        url = (f"http://{database.ip_bank}:{data_transfer['Banco destinatário']}/receive_transfer")
+                        response = requests.patch(url, json=data_receive, timeout=2)
+
+                        if response.status_code == 200:
+                            database.accounts[data_transfer["Chave remetente"]].withdraw(data_transfer["Valor"])
+                        
+                        response = response.json()
+
+                    except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout) as e:
+                        with database.lock:
+                            database.banks_recconection[data_transfer['Banco destinatário']] = True
+                        threading.Thread(target=database.loop_reconnection, args=(data_transfer['Banco destinatário'],)).start()
+                        response = {"Bem sucedido": False, "Justificativa": "Banco desconectado"}
+              
+    return response
+
+
+
+    '''
     if data_transfer["ID remetente"] not in database.accounts:
         response = {"Bem sucedido": False, "Justificativa": "Conta do remetente não encontrada"}
         return response
@@ -226,9 +268,20 @@ def send_transfer(database: object, data_transfer: dict) -> dict:
 
     else:
         return response
+    '''
 
 
 def receive_transfer(database: object, data_transfer: dict) -> dict:
+    if data_transfer["Chave destinatário"] not in database.accounts:
+        response = {"Bem sucedido": False, "Justificativa": "Conta do destinatário não encontrada"}
+    
+    else:
+        database.accounts[data_transfer["Chave destinatário"]].deposit(data_transfer["Valor"])
+        response = {"Bem sucedido": True}
+    
+    return response
+
+    '''
     data_search = database.find_account_by_key(data_transfer["Chave PIX"])
 
     if data_search["Conta encontrada"] == True:
@@ -240,9 +293,7 @@ def receive_transfer(database: object, data_transfer: dict) -> dict:
     else:
         response = {"Bem sucedido": False, "Justificativa": "Chave não encontrada"}
         return response
-
-
-############################################################################################
+    '''
 
 
 ### Teste ###

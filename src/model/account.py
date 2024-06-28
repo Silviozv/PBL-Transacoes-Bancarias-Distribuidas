@@ -18,14 +18,16 @@ class Account:
         self.lock = threading.Lock()
 
     def deposit(self, value: str) -> dict:
-        self.balance = self.balance + float(value)
+        with self.lock:
+            self.balance = self.balance + float(value)
         response = {"Bem sucedido": True}
         return response
 
     def withdraw(self, value: str) -> dict:
         if self.balance >= float(value):
             response = {"Bem sucedido": True}
-            self.balance = self.balance - float(value)
+            with self.lock:
+                self.balance = self.balance - float(value)
             return response
         else:
             response = {"Bem sucedido": False, "Justificativa": "Saldo insuficiente"}

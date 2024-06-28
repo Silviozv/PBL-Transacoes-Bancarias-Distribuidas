@@ -118,12 +118,9 @@ def request_package():
         return jsonify(response), 404
 
 
-
-''' RECEBIMENTO E TRANSFERÊNCIA
-@app.route('/send_transfer/<string:id_sender>/<string:value>/<string:key_recipient>/<string:ip_bank>', methods=['PATCH'])
-def send_transfer_value(id_sender: str, value: str, key_recipient: str, ip_bank: str):
-
-    data_transfer = {"ID remetente": id_sender, "Valor": value, "Chave PIX": key_recipient, "IP banco": ip_bank}
+@app.route('/send_transfer', methods=['PATCH'])
+def send_transfer_value():
+    data_transfer = request.json
     response = bank_impl.send_transfer(database, data_transfer)
     if response["Bem sucedido"] == True:
         return jsonify(response), 200
@@ -131,16 +128,15 @@ def send_transfer_value(id_sender: str, value: str, key_recipient: str, ip_bank:
         return jsonify(response), 404
 
 
-@app.route('/receive_transfer/<string:value>/<string:key_recipient>', methods=['PATCH'])
-def receive_transfer_value(value: str, key_recipient: str):
-
-    data_transfer = {"Valor": value, "Chave PIX": key_recipient}
+@app.route('/receive_transfer', methods=['PATCH'])
+def receive_transfer_value():
+    data_transfer = request.json
     response = bank_impl.receive_transfer(database, data_transfer)
     if response["Bem sucedido"] == True:
         return jsonify(response), 200
     else:
         return jsonify(response), 404
-'''
+
 
 
 def start():
