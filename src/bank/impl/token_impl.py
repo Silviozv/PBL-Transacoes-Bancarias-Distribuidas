@@ -1,7 +1,7 @@
 import time
 import requests
 import threading
-from impl.bank_impl import start_system, add_packages_token, process_packages
+from impl.bank_impl import start_system, add_packages_token, process_packages, send_request, create_result_structure
 
 
 def check_first_pass_token(database: object):
@@ -10,7 +10,9 @@ def check_first_pass_token(database: object):
 
 
 def receive_token(database: object, data_token: dict):
+    print("ALERTA DE DUPLICAÇÃO: ", database.token_duplicate_alert)
     if database.token_duplicate_alert == False:
+        print("PEGUEI UM NOVOOOO")
         if database.token.is_passing == False:
             database.token.set_is_passing(True)
         threading.Thread(target=check_token_validity, args=(database, data_token,)).start()
@@ -28,6 +30,7 @@ def check_token_validity(database: object, data_token: dict):
             send_alert_token_duplicate(database)
     
     else:
+        print("ENTREI AQUIIIIIIIII")
         if database.token.current_id is None:
             print("AAAAAAAAAAAAAAAA")
             database.token.set_id(data_token["ID token"])
@@ -44,26 +47,6 @@ def check_token_validity(database: object, data_token: dict):
         data_token["Contadora de passagem do token"][database.port] += 1
         add_packages_token(database, data_token)
         token_pass(database, data_token) 
-
-    
-'''
-    if database.token.current_id is None:
-        print("AAAAAAAAAAAAAAAA")
-        database.token.set_id(data_token["ID token"])
-        database.token.set_it_has(True)
-        token_pass(database, data_token)
-
-    elif database.token.current_id == data_token["ID token"]:
-        print("BBBBBBBBBBBBBBBBBBBBBBB")
-        database.token.set_it_has(True)
-        token_pass(database, data_token)
-
-    else:
-        print("ID DIFERENTEEEEEEEEEEE")
-        if database.token_duplicate_alert == False:
-            # PROBLEMA: e se dois identificarem o token duplicado?
-            send_alert_token_duplicate(database)
-'''
 
 
 def token_pass(database: object, data_token: dict):
@@ -100,7 +83,7 @@ def send_alert_token_duplicate(database: object):
             database.token.set_it_has(False)
             database.token.set_is_passing(False)
             database.token.set_id(None)
-            start_system(database)
+            threading.Thread(target=reset_duplication_alert, args=(database,)).start()
 
 
 def receive_alert_token_duplicate(database: object, data_alert: dict):
@@ -138,44 +121,40 @@ def treat_duplication(database: object, alert_sender: str):
     with database.lock:
         database.sending_duplicate_token_alert = True
 
+    if alert_sender != "":
+        quantity = len(database.banks) - 2
+    else:
+        quantity = len(database.banks) - 1
+    result_dict = create_result_structure(quantity)
+
+    j = 0
     for i in range(len(database.banks)):
-        if database.banks_recconection[database.banks[i]] == False and database.banks[i] != database.port and \
-                database.banks[i] != alert_sender:
+        if database.banks_recconection[database.banks[i]] == True:
+            result_dict[j]["Terminado"] = True
+            j += 1
+        elif database.banks[i] != database.port and database.banks[i] != alert_sender:
+            # url = (f"http://{database.banks[index]}:5070/alert_token_duplicate")
+            url = (f"http://{database.ip_bank}:{database.banks[i]}/alert_token_duplicate")
+            data = {"Lidar com a duplicação": False}
+            threading.Thread(target=send_request, args=(database, url, database.banks[i], data, "POST", result_dict, j,)).start()
+            j += 1
 
-            try:
-                data = {"Lidar com a duplicação": False}
-                # url = (f"http://{database.banks[index]}:5070/alert_token_duplicate")
-                url = (f"http://{database.ip_bank}:{database.banks[i]}/alert_token_duplicate")
-                response = requests.post(url, json=data).json()
+    if quantity != 0:
+        loop = True
+        while loop == True:
+            loop = False
+            for key in result_dict.keys():
+                if result_dict[key]["Terminado"] == False:
+                    loop = True
 
-            except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout):
-                with database.lock:
-                    database.banks_recconection[database.banks[i]] = True
-                threading.Thread(target=database.loop_reconnection, args=(database.banks[i],)).start()
+    time.sleep(7)
 
-    time.sleep(5)
+    database.set_token_duplicate_alert(False)
 
     with database.lock:
         database.sending_duplicate_token_alert = False
 
-    '''
-    for i in range(len(database.banks)):
-        if database.banks_recconection[database.banks[i]] == False and database.banks[i] != database.port:
-
-            try:
-                # url = (f"http://{database.banks[index]}:5070/release_duplication_alert")
-                url = (f"http://{database.ip_bank}:{database.banks[i]}/release_duplication_alert")
-                response = requests.post(url).json()
-
-            except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout):
-                with database.lock:
-                    database.banks_recconection[database.banks[i]] = True
-                threading.Thread(target=database.loop_reconnection, args=(database.banks[i],)).start()
-
-    with database.lock:
-        database.sending_duplicate_token_alert = False
-    '''
-
+    print("VOLTEI PRO INICIOOOOO")
     start_system(database)
 
 

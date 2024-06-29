@@ -120,7 +120,7 @@ class Database:
                         try:
                             #url = (f"http://{self.banks[index]}:5070/ready_for_connection")
                             url = (f"http://{self.ip_bank}:{self.banks[index]}/ready_for_connection")
-                            status_code = requests.get(url, timeout=2).status_code
+                            status_code = requests.get(url, timeout=5).status_code
 
                             if status_code == 200:
                                 next_bank = self.banks[index]
@@ -151,7 +151,7 @@ class Database:
                     try:
                         # url = (f"http://{self.banks[index]}:5070/ready_for_connection")
                         url = (f"http://{self.ip_bank}:{self.banks[index]}/ready_for_connection")
-                        status_code = requests.get(url, timeout=2).status_code
+                        status_code = requests.get(url, timeout=5).status_code
 
                         if status_code == 200:
                             first_bank = self.banks[index]
@@ -177,7 +177,7 @@ class Database:
             try:
                 #url = (f"http://{ip_bank}:5070/ready_for_connection")
                 url = (f"http://{self.ip_bank}:{ip_bank}/ready_for_connection")
-                status_code = requests.get(url, timeout=2).status_code
+                status_code = requests.get(url, timeout=5).status_code
 
                 if status_code == 200:
                     loop = False

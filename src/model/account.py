@@ -14,27 +14,46 @@ class Account:
         self.type_account = data_account["Tipo de conta"]  # Física (pessoal e conjunta), Jurídica
         self.cpfs = data_account["CPFs"]  # Lista de CPFs
         self.balance = 0
+        self.blocked_balance = 0
 
         self.lock = threading.Lock()
 
-    def deposit(self, value: str) -> dict:
+    def deposit_balance(self, value: str) -> dict:
         with self.lock:
-            self.balance = self.balance + float(value)
+            self.balance += float(value)
         response = {"Bem sucedido": True}
         return response
 
-    def withdraw(self, value: str) -> dict:
+    def withdraw_balance(self, value: str) -> dict:
         if self.balance >= float(value):
             response = {"Bem sucedido": True}
             with self.lock:
-                self.balance = self.balance - float(value)
-            return response
+                self.balance -= float(value)
         else:
             response = {"Bem sucedido": False, "Justificativa": "Saldo insuficiente"}
-            return response
+        
+        return response
+        
+    def deposit_blocked_balance(self, value: str) -> dict:
+        with self.lock:
+            self.blocked_balance += float(value)
+        response = {"Bem sucedido": True}
+        return response
+
+    def withdraw_blocked_balance(self, value: str) -> dict:
+        if self.blocked_balance >= float(value):
+            response = {"Bem sucedido": True}
+            with self.lock:
+                self.blocked_balance -= float(value)
+        else:
+            response = {"Bem sucedido": False, "Justificativa": "Saldo reserva insuficiente"}
+        
+        return response
+
 
     def show_attributes(self):
         print("Chave PIX: ", self.key)
         print("Tipo de conta: ", self.type_account)
         print("CPFs: ", self.cpfs)
         print("Saldo: ", self.balance)
+        print("Saldo bloqueado: ", self.blocked_balance)

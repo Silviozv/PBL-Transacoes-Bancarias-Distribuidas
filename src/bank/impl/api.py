@@ -138,8 +138,37 @@ def receive_transfer_value():
         return jsonify(response), 404
 
 
+@app.route('/send_release_transfer', methods=['PATCH'])
+def send_release_transfer_value():
+    data_transfer = request.json
+    response = bank_impl.send_release_transfer(database, data_transfer)
+    if response["Bem sucedido"] == True:
+        return jsonify(response), 200
+    else:
+        return jsonify(response), 404
+
+
+@app.route('/receive_release_transfer', methods=['PATCH'])
+def receive_release_transfer_value():
+    data_transfer = request.json
+    response = bank_impl.receive_release_transfer(database, data_transfer)
+    if response["Bem sucedido"] == True:
+        return jsonify(response), 200
+    else:
+        return jsonify(response), 404
+    
+
+@app.route('/confirm_package_execution', methods=['PATCH'])
+def confirm_package_execution():
+    data_confirm = request.json
+    response = bank_impl.confirm_package_execution(database, data_confirm)
+    if response["Bem sucedido"] == True:
+        return jsonify(response), 200
+    else:
+        return jsonify(response), 404
+
 
 def start():
-    list_banks = ["5090", "5080", "5060"]
+    list_banks = ["5060", "5080", "5090"]
     threading.Thread(target=bank_impl.add_consortium, args=(database, list_banks,)).start()
     app.run(port=5070, host='0.0.0.0')
