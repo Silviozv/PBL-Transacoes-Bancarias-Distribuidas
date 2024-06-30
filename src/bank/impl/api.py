@@ -1,9 +1,10 @@
-from flask import Flask, jsonify, json, request
+from flask import Flask, jsonify, request
 import threading
 
 import impl.bank_impl as bank_impl
 import impl.register_impl as register_impl
 import impl.token_impl as token_impl
+import impl.package_impl as package_impl
 from model.database import Database
 
 app = Flask(__name__)
@@ -110,7 +111,7 @@ def alert_problem_detected():
 @app.route('/request_package', methods=['PATCH'])
 def request_package():
     data_package = request.json
-    response = bank_impl.request_package(database, data_package)
+    response = package_impl.request_package(database, data_package)
 
     if response["Bem sucedido"] == True:
         return jsonify(response), 200
@@ -161,7 +162,7 @@ def receive_release_transfer_value():
 @app.route('/confirm_package_execution', methods=['PATCH'])
 def confirm_package_execution():
     data_confirm = request.json
-    response = bank_impl.confirm_package_execution(database, data_confirm)
+    response = package_impl.confirm_package_execution(database, data_confirm)
     if response["Bem sucedido"] == True:
         return jsonify(response), 200
     else:
@@ -176,7 +177,6 @@ def check_it_has_token():
         return jsonify(response), 200
     else:
         return jsonify(response), 404
-
 
 
 def start():

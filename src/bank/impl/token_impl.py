@@ -1,7 +1,9 @@
 import time
 import requests
 import threading
-from impl.bank_impl import start_system, add_packages_token, process_packages, send_request, create_result_structure
+from impl.bank_impl import start_system
+from impl.package_impl import add_packages_token, process_packages
+from utils.outline_requests import create_result_structure, send_request
 
 
 def check_first_pass_token(database: object):
@@ -15,45 +17,15 @@ def check_it_has_token(database: object):
 
 
 def count_time_token(database: object, count_limit: int):
-    #print("LIMITE DO TEMPO: ", count_limit)
     database.token.set_time(0)
     quantity = int(count_limit/10)
-    #print("QUANTITY: ", quantity)
-    #print("TO CONTANDOOOOOOOOOOOO")
     while True:
         if database.token.is_passing == True and database.token.it_has == False:
             database.token.set_time(database.token.time + 1)
 
             if database.token.time > count_limit:
-                #print("PASSOU DO TEMPOOOOOOOOO")
                 result_dict = create_result_structure(quantity)
-
-                for i in range(quantity):
-                    #if database.banks[i] == database.ip_bank:
-                    if database.banks[i] == database.port:
-                        result_dict[i]["Terminado"] = True
-                        result_dict[i]["Resposta"] = {"Bem sucedido": False, "Possui o token": False}
-                        #print("ENCONTREI EUUUUU")
-
-                    else:
-                        if database.banks_recconection[database.banks[i]] == True:
-                            result_dict[i]["Terminado"] = True
-                            result_dict[i]["Resposta"] = {"Bem sucedido": False, "Possui o token": None}
-                            #print("UM CAIDOOOOOOO")
-
-                        else:
-                            #url = (f"http://{database.banks[i]}:5060/check_it_has_token")
-                            url = (f"http://{database.ip_bank}:{database.banks[i]}/check_it_has_token")
-                            #print("ARGUMENTOS: ", url)
-                            threading.Thread(target=send_request, args=(database, url, database.banks[i], "", "GET", result_dict, i,)).start()
-                            #print("UM DESGARRADOOOOO")
-                
-                loop = True
-                while loop == True:
-                    loop = False
-                    for key in result_dict.keys():
-                        if result_dict[key]["Terminado"] == False:
-                            loop = True
+                multicast_check_it_has(database, result_dict, quantity)
 
                 quantity_disconnected = 0
                 token_in_the_system = False
@@ -63,51 +35,67 @@ def count_time_token(database: object, count_limit: int):
                     if result_dict[key]["Resposta"]["Bem sucedido"] == True:
                         if result_dict[key]["Resposta"]["Possui o token"] == True:
                             token_in_the_system = True
-                            #print("TA NO SISTEMAAAAAAAAA")
                     else:
                         quantity_disconnected += 1
-                    #print("UMA DAS RESPOSTAS: ",key, result_dict[key]["Resposta"])
 
                 if quantity_disconnected == quantity:
 
                     database.token.reset_all_atributes()
                     threading.Thread(target=start_system, args=(database,)).start()
-                    #print("TUDO DESCONECTADOOOOO")
 
                 elif token_in_the_system == False:
-                    #print("NAO TA NO SISTEMAAAAAAAA")
                     send_problem_alert(database)
 
-                #print("QUANTIDADE DE DESCONECTADOS: ", quantity_disconnected)
                 database.token.set_time(0)
 
         time.sleep(1)
 
 
+def multicast_check_it_has(database: object, result_dict: dict, quantity: int):
+    for i in range(quantity):
+        #if database.banks[i] == database.ip_bank:
+        if database.banks[i] == database.port:
+            result_dict[i]["Terminado"] = True
+            result_dict[i]["Resposta"] = {"Bem sucedido": False, "Possui o token": False}
+
+        else:
+            if database.banks_recconection[database.banks[i]] == True:
+                result_dict[i]["Terminado"] = True
+                result_dict[i]["Resposta"] = {"Bem sucedido": False, "Possui o token": None}
+
+            else:
+                #url = (f"http://{database.banks[i]}:5060/check_it_has_token")
+                url = (f"http://{database.ip_bank}:{database.banks[i]}/check_it_has_token")
+                threading.Thread(target=send_request, args=(database, url, database.banks[i], "", "GET", result_dict, i,)).start()
+
+    loop = True
+    while loop == True:
+        loop = False
+        for key in result_dict.keys():
+            if result_dict[key]["Terminado"] == False:
+                loop = True
+    
+    print(result_dict)
+
+
 def receive_token(database: object, data_token: dict):
-    #print("ALERTA DE DUPLICAÇÃO: ", database.token_problem_alert)
     if database.token_problem_alert == False:
-        #print("PEGUEI UM NOVOOOO")
         if database.token.is_passing == False:
             database.token.set_is_passing(True)
         threading.Thread(target=check_token_validity, args=(database, data_token,)).start()
 
-    #print(data_token)
     response = {"Bem sucedido": True}
     return response
 
 
 def check_token_validity(database: object, data_token: dict):
     if database.token.current_id != None and database.token.current_id != data_token["ID token"]:
-        #print("ID DIFERENTEEEEEEEEEEE")
         if database.token_problem_alert == False:
             # PROBLEMA: e se dois identificarem o token duplicado?
             send_problem_alert(database)
     
     else:
-        #print("ENTREI AQUIIIIIIIII")
         if database.token.current_id is None:
-            #print("AAAAAAAAAAAAAAAA")
             database.token.set_id(data_token["ID token"])
 
         database.token.set_it_has(True)
@@ -115,7 +103,6 @@ def check_token_validity(database: object, data_token: dict):
 
         #if data_token["Contadora de passagem do token"][database.ip_bank] == 1:
         if data_token["Contadora de passagem do token"][database.port] == 1:
-            #print("\nTEM QUE EXECUTAR OS PACOTEEEEEEE\n")
             process_packages(database, data_token) 
             database.token.clear_token_pass_counter(data_token["Contadora de passagem do token"])
         
@@ -135,7 +122,6 @@ def token_pass(database: object, data_token: dict):
             status_code = requests.post(url, json=data_token).status_code
 
             if status_code == 200:
-                #print("REPASSEI O PRIMEIROOOOOO")
                 database.token.set_it_has(False)
                 database.token.set_time(0)
 
@@ -145,7 +131,6 @@ def token_pass(database: object, data_token: dict):
 
 
 def send_problem_alert(database: object):
-    #print("DUPLICACAO DETECTADAAAAAAAAAA")
     # if database.find_first_bank() == database.ip_bank:
     if database.find_first_bank() == database.port:
         threading.Thread(target=treat_problem, args=(database, "",)).start()
@@ -158,7 +143,6 @@ def send_problem_alert(database: object):
         response = requests.post(url, json=data).json()
 
         if response["Bem sucedido"] == True:
-            #print("AVISEIIIIIIIIIIIIIIIIIIIIIIIII")
             database.set_token_problem_alert(True)
             database.token.reset_all_atributes()
             threading.Thread(target=reset_duplication_alert, args=(database,)).start()
@@ -186,9 +170,7 @@ def receive_problem_alert(database: object, data_alert: dict):
         return response
     
 
-### TESTE
 def treat_problem(database: object, alert_sender: str):
-    #print("TO TRATANDOOOOOOOOOO")
     database.set_token_problem_alert(True)
     database.token.reset_all_atributes()
 
@@ -222,7 +204,6 @@ def treat_problem(database: object, alert_sender: str):
 
     database.set_token_problem_alert(False)
 
-    #print("VOLTEI PRO INICIOOOOO")
     start_system(database)
 
 

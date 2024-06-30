@@ -15,21 +15,17 @@ class Token:
     def set_it_has(self, it_has: bool):
         with self.lock:
             self.it_has = it_has
-            #print("Tenho o token: ", self.it_has)
 
     def set_is_passing(self, is_passing: bool):
         with self.lock:
             self.is_passing = is_passing
-            #print("Token setado para está passando.")
 
     def set_time(self, time: int):
         with self.lock:
             self.time = time
-            #print("TEMPO: ", self.time)
 
     def set_id(self, id: str):
         with self.lock:
-            #print("ID token: ", id)
             self.current_id = id
 
     def reset_all_atributes(self):
@@ -38,7 +34,6 @@ class Token:
             self.it_has = False
             self.time = 0
             self.current_id = None
-            #print("RESETEI TUDOOOOO")
 
     def create_token(self, ip_bank: str, banks: list) -> dict:
         date_time = datetime.now()

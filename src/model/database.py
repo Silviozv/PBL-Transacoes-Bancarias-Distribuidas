@@ -1,7 +1,6 @@
 import threading
 import socket
 import requests
-import time
 from model.token import Token
 
 class Database:
@@ -28,13 +27,11 @@ class Database:
         self.ready_for_connection = False
         self.token = Token()
         self.token_problem_alert = False
-        # Quando um pacote estiver sendo executado e for recebido o sinal de token duplicado, terminasse de
-        # executar o pacote e depois muda esse atríbuto para poder responder ao que identificou o token duplicado.
-        # fica em um while preso até terminar o pacote, e ai envia a resposta de volta.
-        # Se o alerta for recebido, todas as operações de transferência devem ser abortadas
+
         self.processing_package = False
         self.count_accounts = 0
         self.count_packages = 0
+ 
         self.lock = threading.Lock()
 
     def set_token_problem_alert(self, token_problem_alert: bool):
