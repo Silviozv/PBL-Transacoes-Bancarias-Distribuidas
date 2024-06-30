@@ -9,7 +9,6 @@ def create_result_structure(quantity: int) -> dict:
 
 def send_request(database: object, url: str, ip_bank: str, data: dict, http_method: str, result_dict: dict, index: str):
     try:
-        print("URL: ", url)
         if http_method == "GET":
             response = requests.get(url, json=data, timeout=5)
         elif http_method == "POST":
@@ -17,10 +16,8 @@ def send_request(database: object, url: str, ip_bank: str, data: dict, http_meth
         elif http_method == "PATCH":
             response = requests.patch(url, json=data, timeout=5)
 
-        print("RESPOSTA: ", response.json())
         #if url == (f"http://{ip_bank}:5060/ready_for_connection") and response.status_code != 200:
         if url == (f"http://{database.ip_bank}:{ip_bank}/ready_for_connection") and response.status_code != 200:
-            print("DEU RUUIIIMMMM")
             raise requests.exceptions.ConnectionError
         
     except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout) as e:
@@ -28,7 +25,6 @@ def send_request(database: object, url: str, ip_bank: str, data: dict, http_meth
             database.banks_recconection[ip_bank] = True
         threading.Thread(target=database.loop_reconnection, args=(ip_bank,)).start()
         response = {"Bem sucedido": False, "Justificativa": "Banco desconectado"}
-        print("ERROOOOOO")
 
     result_dict[index]["Resposta"] = response
     result_dict[index]["Terminado"] = True

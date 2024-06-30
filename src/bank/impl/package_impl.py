@@ -18,46 +18,79 @@ def process_packages(database: object, data_token: dict):
 
     for i in range(len(data_token["Pacotes"])):
 
-        quantity = len(data_token["Pacotes"][i]["Dados"]["Bancos remetentes"])
-        result_dict = create_result_structure(quantity)
+        quantity_senders = len(data_token["Pacotes"][i]["Dados"]["Chaves remetentes"])
+        quantity_receivers = len(data_token["Pacotes"][i]["Dados"]["Chaves destinatários"])
 
-        for j in range(quantity):
-            #url = (f"http://{data_token["Pacotes"][i]["Dados"]["Bancos remetentes"][j]}:5060/send_transfer")
-            url = (f"http://{database.ip_bank}:{data_token['Pacotes'][i]['Dados']['Bancos remetentes'][j]}/send_transfer")
-            data = {"Chave remetente": data_token["Pacotes"][i]["Dados"]["Chaves remetentes"][j], 
-                    "Banco destinatário": data_token["Pacotes"][i]["Dados"]["Bancos destinatários"][j], 
-                    "Chave destinatário": data_token["Pacotes"][i]["Dados"]["Chaves destinatários"][j], 
-                    "Valor": data_token["Pacotes"][i]["Dados"]["Valores"][j]}
-            threading.Thread(target=send_request, args=(database, url, data_token["Pacotes"][i]["Dados"]["Bancos remetentes"][j], data, "PATCH", result_dict, j,)).start()
-    
-        loop = True
-        while loop == True:
-            loop = False
-            for key in result_dict.keys():
-                if result_dict[key]["Terminado"] == False:
-                    loop = True
-        
-        successful_package = True
-        failure_justifications = {}
-        failure_transactions = []
-        for key in result_dict.keys():
-            response = result_dict[key]['Resposta'].json()
+        if quantity_senders != quantity_receivers:
+
+            result_dict = create_result_structure(1)
+
+            if quantity_senders > quantity_receivers:
+                #url = (f"http://{data_token['Pacotes'][i]['Dados']['Bancos remetentes'][0]}:5060/withdraw")
+                url = (f"http://{database.ip_bank}:{data_token['Pacotes'][i]['Dados']['Bancos remetentes'][0]}/withdraw")
+                data = {"Chave": data_token["Pacotes"][i]["Dados"]["Chaves remetentes"][0], 
+                        "Valor": data_token["Pacotes"][i]["Dados"]["Valores"][0]}
+                threading.Thread(target=send_request, args=(database, url, data_token["Pacotes"][i]["Dados"]["Bancos remetentes"][0], data, "PATCH", result_dict, 0,)).start()
+
+            else:
+                #url = (f"http://{data_token['Pacotes'][i]['Dados']['Bancos destinatários'][0]}:5060/deposit")
+                url = (f"http://{database.ip_bank}:{data_token['Pacotes'][i]['Dados']['Bancos destinatários'][0]}/deposit")
+                data = {"Chave": data_token["Pacotes"][i]["Dados"]["Chaves destinatários"][0], 
+                        "Valor": data_token["Pacotes"][i]["Dados"]["Valores"][0]}
+                threading.Thread(target=send_request, args=(database, url, data_token["Pacotes"][i]["Dados"]["Bancos destinatários"][0], data, "PATCH", result_dict, 0,)).start()
+
+            while result_dict[0]["Terminado"] == False:
+                pass
+
+            successful_package = True
+            failure_justifications = {}
+            response = result_dict[0]['Resposta'].json()
             if response["Bem sucedido"] == False:
                 successful_package = False
-                failure_justifications[key] = response["Justificativa"]
-                failure_transactions.append(key)
+                failure_justifications[0] = response["Justificativa"]
 
-        for j in range(quantity):
+        else:
 
-            if j not in failure_transactions:
-                #url = (f"http://{data_token['Pacotes'][i]['Dados']['Bancos remetentes'][j]}:5060/send_release_transfer")
-                url = (f"http://{database.ip_bank}:{data_token['Pacotes'][i]['Dados']['Bancos remetentes'][j]}/send_release_transfer")
+            quantity = quantity_senders
+            result_dict = create_result_structure(quantity)
+
+            for j in range(quantity):
+                #url = (f"http://{data_token["Pacotes"][i]["Dados"]["Bancos remetentes"][j]}:5060/send_transfer")
+                url = (f"http://{database.ip_bank}:{data_token['Pacotes'][i]['Dados']['Bancos remetentes'][j]}/send_transfer")
                 data = {"Chave remetente": data_token["Pacotes"][i]["Dados"]["Chaves remetentes"][j], 
                         "Banco destinatário": data_token["Pacotes"][i]["Dados"]["Bancos destinatários"][j], 
                         "Chave destinatário": data_token["Pacotes"][i]["Dados"]["Chaves destinatários"][j], 
-                        "Valor": data_token["Pacotes"][i]["Dados"]["Valores"][j],
-                        "Execução bem sucedida do pacote": successful_package}
+                        "Valor": data_token["Pacotes"][i]["Dados"]["Valores"][j]}
                 threading.Thread(target=send_request, args=(database, url, data_token["Pacotes"][i]["Dados"]["Bancos remetentes"][j], data, "PATCH", result_dict, j,)).start()
+        
+            loop = True
+            while loop == True:
+                loop = False
+                for key in result_dict.keys():
+                    if result_dict[key]["Terminado"] == False:
+                        loop = True
+            
+            successful_package = True
+            failure_justifications = {}
+            failure_transactions = []
+            for key in result_dict.keys():
+                response = result_dict[key]['Resposta'].json()
+                if response["Bem sucedido"] == False:
+                    successful_package = False
+                    failure_justifications[key] = response["Justificativa"]
+                    failure_transactions.append(key)
+
+            for j in range(quantity):
+
+                if j not in failure_transactions:
+                    #url = (f"http://{data_token['Pacotes'][i]['Dados']['Bancos remetentes'][j]}:5060/send_release_transfer")
+                    url = (f"http://{database.ip_bank}:{data_token['Pacotes'][i]['Dados']['Bancos remetentes'][j]}/send_release_transfer")
+                    data = {"Chave remetente": data_token["Pacotes"][i]["Dados"]["Chaves remetentes"][j], 
+                            "Banco destinatário": data_token["Pacotes"][i]["Dados"]["Bancos destinatários"][j], 
+                            "Chave destinatário": data_token["Pacotes"][i]["Dados"]["Chaves destinatários"][j], 
+                            "Valor": data_token["Pacotes"][i]["Dados"]["Valores"][j],
+                            "Execução bem sucedida do pacote": successful_package}
+                    threading.Thread(target=send_request, args=(database, url, data_token["Pacotes"][i]["Dados"]["Bancos remetentes"][j], data, "PATCH", result_dict, j,)).start()
 
         if database.banks_recconection[data_token["Pacotes"][i]["Origem"]] == False:
             try:

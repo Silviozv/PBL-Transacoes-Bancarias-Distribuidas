@@ -31,7 +31,7 @@ class Database:
         self.processing_package = False
         self.count_accounts = 0
         self.count_packages = 0
- 
+
         self.lock = threading.Lock()
 
     def set_token_problem_alert(self, token_problem_alert: bool):

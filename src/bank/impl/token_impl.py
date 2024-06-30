@@ -74,8 +74,6 @@ def multicast_check_it_has(database: object, result_dict: dict, quantity: int):
         for key in result_dict.keys():
             if result_dict[key]["Terminado"] == False:
                 loop = True
-    
-    print(result_dict)
 
 
 def receive_token(database: object, data_token: dict):

@@ -219,7 +219,6 @@ def receive_release_transfer(database: object, data_transfer: dict) -> dict:
 
 ### Teste ###
 def show_all(database: object):
-    database.set_token_problem_alert(True)
     print("\n--- BANCOS ---")
     print()
     for i in range(len(database.banks)):
