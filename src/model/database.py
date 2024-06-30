@@ -12,7 +12,7 @@ class Database:
 
     def __init__(self):
         ##
-        self.port = "5070"
+        self.port = "5090"
         ##
         self.ip_bank = socket.gethostbyname(socket.gethostname())
         #self.banks = [self.ip_bank]
@@ -27,8 +27,7 @@ class Database:
 
         self.ready_for_connection = False
         self.token = Token()
-        self.token_duplicate_alert = False
-        self.sending_duplicate_token_alert = False
+        self.token_problem_alert = False
         # Quando um pacote estiver sendo executado e for recebido o sinal de token duplicado, terminasse de
         # executar o pacote e depois muda esse atríbuto para poder responder ao que identificou o token duplicado.
         # fica em um while preso até terminar o pacote, e ai envia a resposta de volta.
@@ -36,12 +35,11 @@ class Database:
         self.processing_package = False
         self.count_accounts = 0
         self.count_packages = 0
-
         self.lock = threading.Lock()
 
-    def set_token_duplicate_alert(self, token_duplicate_alert: bool):
+    def set_token_problem_alert(self, token_problem_alert: bool):
         with self.lock:
-            self.token_duplicate_alert = token_duplicate_alert
+            self.token_problem_alert = token_problem_alert
 
     # Teste
     def add_bank(self, ip_bank: str):

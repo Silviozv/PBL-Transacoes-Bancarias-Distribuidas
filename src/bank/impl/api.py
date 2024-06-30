@@ -96,10 +96,10 @@ def token_pass():
         return jsonify(response), 404
 
 
-@app.route('/alert_token_duplicate', methods=['POST'])
-def alert_token_duplicate():
+@app.route('/alert_problem_detected', methods=['POST'])
+def alert_problem_detected():
     data_alert = request.json
-    response = token_impl.receive_alert_token_duplicate(database, data_alert)
+    response = token_impl.receive_problem_alert(database, data_alert)
 
     if response["Bem sucedido"] == True:
         return jsonify(response), 200
@@ -168,7 +168,19 @@ def confirm_package_execution():
         return jsonify(response), 404
 
 
+@app.route('/check_it_has_token', methods=['GET'])
+def check_it_has_token():
+    response = token_impl.check_it_has_token(database)
+
+    if response["Bem sucedido"] == True:
+        return jsonify(response), 200
+    else:
+        return jsonify(response), 404
+
+
+
 def start():
-    list_banks = ["5060", "5080", "5090"]
+    list_banks = ["5080", "5090", "5070", "5060"]
+    threading.Thread(target=token_impl.count_time_token, args=(database, len(list_banks) * 10,)).start()
     threading.Thread(target=bank_impl.add_consortium, args=(database, list_banks,)).start()
-    app.run(port=5070, host='0.0.0.0')
+    app.run(port=5090, host='0.0.0.0')

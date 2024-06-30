@@ -4,6 +4,13 @@ import threading
 
 
 def add_consortium(database: object, list_ip_banks: list):
+    #if database.ip_bank in list_ip_banks:
+    if database.port in list_ip_banks:
+        #list_ip_banks.remove(database.ip_bank)
+        list_ip_banks.remove(database.port)
+
+    #print(list_ip_banks)
+
     result_dict = create_result_structure(len(list_ip_banks))
 
     for i in range(len(list_ip_banks)):
@@ -20,7 +27,7 @@ def add_consortium(database: object, list_ip_banks: list):
                 loop = True
 
     database.sort_ip_banks()
-    # threading.Thread( target=count_time_token).start()
+    database.token.reset_all_atributes()
     start_system(database)
 
 
@@ -30,11 +37,12 @@ def ready_for_connection(database: object):
 
 
 def start_system(database: object):
-    print("REINICIEIIIIIIIIIIIIIIIIIII")
+    #print("REINICIEIIIIIIIIIIIIIIIIIII")
     database.ready_for_connection = True
+    reset_packages(database)
 
     while database.token.is_passing == False:
-        print(database.banks_recconection)
+        #print(database.banks_recconection)
         while database.count_banks_on() == 0:
             pass
 
@@ -53,15 +61,12 @@ def start_system(database: object):
 
                 #data_token["Contadora de passagem do token"][database.ip_bank] += 1
                 data_token["Contadora de passagem do token"][database.port] += 1
-                print(data_token)
+                #print(data_token)
 
                 # url = (f"http://{database.find_next_bank()}:5070/token_pass")
                 url = (f"http://{database.ip_bank}:{database.find_next_bank()}/token_pass")
                 response = requests.post(url, json=data_token).json()
-                print("ENVIEI O PRIMEIROOOOOOOOOOOOOOOOOOO")
-
-            if database.token_duplicate_alert == True:
-                database.set_token_duplicate_alert(False)
+                #print("ENVIEI O PRIMEIROOOOOOOOOOOOOOOOOOO")
 
             database.token.set_is_passing(True)
 
@@ -76,7 +81,7 @@ def teste(database: object):
     add_packages_token(database, data_token)
     #data_token["Contadora de passagem do token"][database.ip_bank] += 1
     data_token["Contadora de passagem do token"][database.port] += 1
-    print(data_token)
+    #print(data_token)
     # url = (f"http://{database.find_next_bank()}:5070/token_pass")
     url = (f"http://{database.ip_bank}:5070/token_pass")
     response = requests.post(url, json=data_token).json()
@@ -90,7 +95,7 @@ def add_packages_token(database: object, data_token: dict):
             data_token["Pacotes"].append({"ID": key, "Dados": database.packages[key]["Dados"], "Origem": database.port})
             database.set_send_package_to_execution(key)
 
-    print("Pacotes: ", database.packages)
+    #print("Pacotes: ", database.packages)
 
 
 def create_result_structure(quantity: int) -> dict:
@@ -110,13 +115,15 @@ def send_request(database: object, url: str, ip_bank: str, data: dict, http_meth
 
         #if url == (f"http://{ip_bank}:5060/ready_for_connection") and response.status_code != 200:
         if url == (f"http://{database.ip_bank}:{ip_bank}/ready_for_connection") and response.status_code != 200:
+            #print("ENTREI NESSE IFFFF")
             raise requests.exceptions.ConnectionError
         
-    except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout):
+    except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout) as e:
         with database.lock:
             database.banks_recconection[ip_bank] = True
         threading.Thread(target=database.loop_reconnection, args=(ip_bank,)).start()
         response = {"Bem sucedido": False, "Justificativa": "Banco desconectado"}
+        #print("DEU ERROOO SEI LA DE QUE: ", e)
 
     result_dict[index]["Resposta"] = response
     result_dict[index]["Terminado"] = True
@@ -130,7 +137,7 @@ def process_packages(database: object, data_token: dict):
         quantity = len(data_token["Pacotes"][i]["Dados"]["Bancos remetentes"])
         result_dict = create_result_structure(quantity)
 
-        print()
+        #print()
         for j in range(quantity):
             #url = (f"http://{data_token["Pacotes"][i]["Dados"]["Bancos remetentes"][j]}:5060/send_transfer")
             url = (f"http://{database.ip_bank}:{data_token['Pacotes'][i]['Dados']['Bancos remetentes'][j]}/send_transfer")
@@ -138,7 +145,7 @@ def process_packages(database: object, data_token: dict):
                     "Banco destinatário": data_token["Pacotes"][i]["Dados"]["Bancos destinatários"][j], 
                     "Chave destinatário": data_token["Pacotes"][i]["Dados"]["Chaves destinatários"][j], 
                     "Valor": data_token["Pacotes"][i]["Dados"]["Valores"][j]}
-            print("ORDEM DE PAGAMENTO: ", data)
+            #print("ORDEM DE PAGAMENTO: ", data)
             threading.Thread(target=send_request, args=(database, url, data_token["Pacotes"][i]["Dados"]["Bancos remetentes"][j], data, "PATCH", result_dict, j,)).start()
     
         loop = True
@@ -157,10 +164,10 @@ def process_packages(database: object, data_token: dict):
                 successful_package = False
                 failure_justifications[key] = response["Justificativa"]
                 failure_transactions.append(key)
-            print(f"RESPOSTA {key}: {response}")
+            #print(f"RESPOSTA {key}: {response}")
 
-        print("RESPOSTA FINAL: ", successful_package)
-        print("\nLISTA DE JUSTIFICATIVAS: ", failure_justifications)    
+        #print("RESPOSTA FINAL: ", successful_package)
+        #print("\nLISTA DE JUSTIFICATIVAS: ", failure_justifications)    
 
         for j in range(quantity):
 
@@ -172,7 +179,7 @@ def process_packages(database: object, data_token: dict):
                         "Chave destinatário": data_token["Pacotes"][i]["Dados"]["Chaves destinatários"][j], 
                         "Valor": data_token["Pacotes"][i]["Dados"]["Valores"][j],
                         "Execução bem sucedida do pacote": successful_package}
-                print("ORDEM DE PAGAMENTO: ", data)
+                #print("ORDEM DE PAGAMENTO: ", data)
                 threading.Thread(target=send_request, args=(database, url, data_token["Pacotes"][i]["Dados"]["Bancos remetentes"][j], data, "PATCH", result_dict, j,)).start()
 
         if database.banks_recconection[data_token["Pacotes"][i]["Origem"]] == False:
@@ -204,23 +211,13 @@ def confirm_package_execution(database: object, data_confirm: dict):
 
 def request_package(database: object, data_package: dict):
     id = database.add_package(data_package)
-    print(database.packages[id])
+    #print(database.packages[id])
 
     while database.packages[id]["Terminado"] == False:
         pass
 
     response = database.packages[id]
     return response
-
-
-
-'''
-def count_time_token():
-    while True:
-        time.sleep(1)
-        if database.count_banks_on != 0:
-            database.token.time += 1
-'''
 
 
 # PARTE DAS TRANSAÇÕES ANTIGAS
@@ -296,7 +293,7 @@ def receive_transfer(database: object, data_transfer: dict) -> dict:
         response = {"Bem sucedido": False, "Justificativa": "Conta do destinatário não encontrada"}
     
     else:
-        print("FOI DEPOSITADO: ", data_transfer["Valor"])
+        #print("FOI DEPOSITADO: ", data_transfer["Valor"])
         database.accounts[data_transfer["Chave destinatário"]].deposit_blocked_balance(data_transfer["Valor"])
         response = {"Bem sucedido": True}
     
@@ -356,6 +353,15 @@ def receive_release_transfer(database: object, data_transfer: dict) -> dict:
         response = {"Bem sucedido": True}
     
     return response
+
+
+def reset_packages(database: object):
+    for key in database.packages.keys():
+        if database.packages[key]["Terminado"] == False and database.packages[key]["Adicionado ao token"] == True:
+            with database.lock:
+                #print(f"\nPACOTE ANTIGO: {database.packages[key]}")
+                database.packages[key]["Adicionado ao token"] = False
+                #print(f"PACOTE RESETADO: {database.packages[key]}\n")
 
 
 ### Teste ###
