@@ -5,6 +5,67 @@ from utils.outline_requests import create_result_structure, send_request
 from impl.package_impl import add_packages_token, reset_packages
 
 
+def ready_for_connection(database: object):
+    response = {"Bem sucedido": database.ready_for_connection}
+    return response
+
+
+def check_user(database: dict, data_check: dict):
+    if data_check["CPF"] in database.users.keys():
+        response = {"Usuário encontrado": True, "Nome do usuário": database.users[data_check["CPF"]].name}
+    else:
+        response = {"Usuário encontrado": False}
+
+    return response
+
+
+def get_account_consortium(database: dict, data_user: dict):
+    accounts = {}
+    for i in range(len(database.banks)):
+        #if database.banks[i] == database.ip_bank:
+        if database.banks[i] == database.port:
+            response = get_account_by_user(database, data_user)
+            if response["Bem sucedido"] == True:
+                accounts[database.banks[i]] = response["Contas"]
+        else:
+            try:
+                #url = (f"http://{database.banks[i]}:5060/get/account/user")
+                url = (f"http://{database.ip_bank}:{database.banks[i]}/get/account/user")
+                response = requests.get(url, json=data_user, timeout=5)
+
+                if response.status_code == 200:
+                    response = response.json()
+                    accounts[database.banks[i]] = response["Contas"]
+            
+            except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout):
+                pass
+
+    if len(accounts) == 0:
+        response = {"Bem sucedido": False}
+    else:
+        response = {"Bem sucedido": True, "Contas": accounts}
+
+    return response
+
+def get_account_by_user(database: dict, data_user: dict):
+    accounts = []
+    for key in database.accounts.keys():
+        for i in range(len(database.accounts[key].cpfs)):
+            if database.accounts[key].cpfs[i] == data_user["CPF usuário"]:
+                data_account = {"Chave": database.accounts[key].key, 
+                                "Tipo de conta": database.accounts[key].type_account,
+                                "CPFs": database.accounts[key].cpfs,
+                                "Saldo": database.accounts[key].balance}
+                accounts.append(data_account)
+
+    if len(accounts) == 0:
+        response = {"Bem sucedido": False}
+    else:
+        response = {"Bem sucedido": True, "Contas": accounts}
+
+    return response
+
+
 def add_consortium(database: object, list_ip_banks: list):
     #if database.ip_bank in list_ip_banks:
     if database.port in list_ip_banks:
@@ -29,11 +90,6 @@ def add_consortium(database: object, list_ip_banks: list):
     database.sort_ip_banks()
     database.token.reset_all_atributes()
     start_system(database)
-
-
-def ready_for_connection(database: object):
-    response = {"Bem sucedido": database.ready_for_connection}
-    return response
 
 
 def start_system(database: object):

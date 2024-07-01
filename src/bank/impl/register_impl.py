@@ -10,13 +10,13 @@ def register_user(database: object, data_user: dict) -> dict:
     user = User(data_user)
     with database.lock:
         database.users[user.cpf] = user
-
+    
     response = {"Bem sucedido": True}
     return response
 
 
 def register_account(database: object, data_account: dict) -> dict:
-    if data_account["Tipo de conta"][0] == "Fisica" and data_account["Tipo de conta"][1] == "Pessoal":
+    if data_account["Tipo de conta"][0] == "Física" and data_account["Tipo de conta"][1] == "Pessoal":
         if data_account["CPFs"][0] in database.users:
             if database.users[data_account["CPFs"][0]].have_physical_account == True:
                 response = {"Bem sucedido": False, "Justificativa": "O usuário já possui uma conta física"}
@@ -32,7 +32,7 @@ def register_account(database: object, data_account: dict) -> dict:
     account = Account(data_account)
     database.add_account(account)
 
-    if data_account["Tipo de conta"][0] == "Fisica" and data_account["Tipo de conta"][1] == "Pessoal":
+    if data_account["Tipo de conta"][0] == "Física" and data_account["Tipo de conta"][1] == "Pessoal":
         with database.lock:
             database.users[account.cpfs[0]].set_have_physical_account(True)
 

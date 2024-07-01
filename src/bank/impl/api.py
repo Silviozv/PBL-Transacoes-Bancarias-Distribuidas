@@ -26,7 +26,6 @@ def show_all():
     return jsonify(bank_impl.show_all(database)), 200
 
 
-
 @app.route('/register/user', methods=['POST'])
 def register_user():
 
@@ -39,11 +38,47 @@ def register_user():
         return jsonify(response), 404
 
 
+@app.route('/check/user', methods=['GET'])
+def check_user():
+
+    data_check = request.json
+    response = bank_impl.check_user(database, data_check)
+
+    if response["Usuário encontrado"] == True:
+        return jsonify(response), 200
+    else:
+        return jsonify(response), 404
+
+
 @app.route('/register/account', methods=['POST'])
 def register_account():
 
     data_account = request.json
     response = register_impl.register_account(database, data_account)
+
+    if response["Bem sucedido"] == True:
+        return jsonify(response), 200
+    else:
+        return jsonify(response), 404
+    
+
+@app.route('/get/account/consortium', methods=['GET'])
+def get_account_consortium():
+
+    data_user = request.json
+    response = bank_impl.get_account_consortium(database, data_user)
+
+    if response["Bem sucedido"] == True:
+        return jsonify(response), 200
+    else:
+        return jsonify(response), 404
+
+
+@app.route('/get/account/user', methods=['GET'])
+def get_account_by_user():
+
+    data_user = request.json
+    response = bank_impl.get_account_by_user(database, data_user)
 
     if response["Bem sucedido"] == True:
         return jsonify(response), 200
@@ -183,4 +218,4 @@ def start():
     list_banks = ["5080", "5090", "5070", "5060"]
     threading.Thread(target=token_impl.count_time_token, args=(database, len(list_banks) * 10,)).start()
     threading.Thread(target=bank_impl.add_consortium, args=(database, list_banks,)).start()
-    app.run(port=5090, host='0.0.0.0')
+    app.run(port=5070, host='0.0.0.0')
