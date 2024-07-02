@@ -16,6 +16,9 @@ def add_packages_token(database: object, data_token: dict):
 def process_packages(database: object, data_token: dict):
     # FOI IMPLEMENTADA  A TRANSFERÊNCIA, AGORA É NECESSÁRIO FAZER A LÓGICA DO BANCO CENTRAL  
 
+    with database.lock:
+        database.processing_package = True
+
     for i in range(len(data_token["Pacotes"])):
 
         quantity_senders = len(data_token["Pacotes"][i]["Dados"]["Chaves remetentes"])
@@ -107,6 +110,9 @@ def process_packages(database: object, data_token: dict):
                 threading.Thread(target=database.loop_reconnection, args=(data_token["Pacotes"][i]["Origem"],)).start()
 
     data_token["Pacotes"] = []
+
+    with database.lock:
+        database.processing_package = False
 
 
 def confirm_package_execution(database: object, data_confirm: dict):
