@@ -11,9 +11,3 @@ class User:
 
     def set_have_physical_account(self, have_physical_account: bool):
         self.have_physical_account = have_physical_account
-
-
-    def show_attributes(self):
-        print("CPF: ", self.cpf)
-        print("Nome: ", self.name)
-        print("Tem conta física: ", self.have_physical_account)

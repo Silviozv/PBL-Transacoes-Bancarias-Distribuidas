@@ -2,12 +2,8 @@ import requests
 import os
 import re
 
-#teste
-import socket
-ip_teste = socket.gethostbyname(socket.gethostname())
 
 def start():
-    utils = {"Formato padrão de IP": re.compile(r'^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$')}
 
     info = {}
     info['Menu atual'] = 'Inicial'
@@ -23,7 +19,7 @@ def start():
         show_screen(info)
 
         info['Opção'] = input("\n  > ").strip()
-        process_option(info, utils)
+        process_option(info)
 
         clear_terminal()
 
@@ -137,7 +133,7 @@ def show_screen( info: dict):
         print("+-----------------------------------------------------------------------------+")
 
 
-def process_option(info: dict, utils: dict) -> dict:
+def process_option(info: dict) -> dict:
 
 
     if (info['Menu atual'] == 'Inicial'):
@@ -145,15 +141,14 @@ def process_option(info: dict, utils: dict) -> dict:
         if (info['Opção'] == '1'):
             try:
                 cpf = input("\n  - CPF: ").strip()
-                #if cpf.isdigit() == False or len(cpf) != 11:
-                #    raise ValueError("CPF inválido")
+                if cpf.isdigit() == False or len(cpf) != 11:
+                    raise ValueError("CPF inválido")
                 ip_bank = input("  - IP do banco: ").strip()
-                #if utils["Formato padrão de IP"].match(ip_bank) == False:
-                #    raise ValueError("IP inválido")
+                if (not (re.match(r'^(\d{1,3}\.){3}\d{1,3}$', ip_bank))):
+                    raise ValueError("IP inválido")
             
                 data = {"CPF": cpf}
-                #url = (f"http://{ip_bank}:5060/register/user")
-                url = (f"http://{ip_teste}:{ip_bank}/check/user")
+                url = (f"http://{ip_bank}:5060/check/user")
                 response = requests.get(url, json=data)
                 status_code = response.status_code
                 response = response.json()
@@ -180,15 +175,14 @@ def process_option(info: dict, utils: dict) -> dict:
                 if len(name) > 27:
                     raise ValueError("Nome muito extenso")
                 cpf = input("  - CPF: ").strip()
-                #if cpf.isdigit() == False or len(cpf) != 11:
-                #    raise ValueError("CPF inválido")
+                if cpf.isdigit() == False or len(cpf) != 11:
+                    raise ValueError("CPF inválido")
                 ip_bank = input("  - IP do banco: ").strip()
-                #if utils["Formato padrão de IP"].match(ip_bank) == False:
-                #    raise ValueError("IP inválido")
+                if (not (re.match(r'^(\d{1,3}\.){3}\d{1,3}$', ip_bank))):
+                    raise ValueError("IP inválido")
 
                 data = {"Nome": name, "CPF": cpf}
-                #url = (f"http://{ip_bank}:5060/register/user")
-                url = (f"http://{ip_teste}:{ip_bank}/register/user")
+                url = (f"http://{ip_bank}:5060/register/user")
                 response = requests.post(url, json=data)
                 status_code = response.status_code
                 response = response.json()
@@ -218,8 +212,7 @@ def process_option(info: dict, utils: dict) -> dict:
 
         elif (info['Opção'] == '2'):
             data = {"CPF usuário": info['CPF usuário']}
-            #url = (f"http://{info['Banco atual']}:5060/get/account/consortium")
-            url = (f"http://{ip_teste}:{info['Banco atual']}/get/account/consortium")
+            url = (f"http://{info['Banco atual']}:5060/get/account/consortium")
             response = requests.get(url, json=data)
             status_code = response.status_code
 
@@ -242,8 +235,7 @@ def process_option(info: dict, utils: dict) -> dict:
                     raise ValueError("Valor inválido")
                 
                 data = {"ID conta": id_account, "CPF usuário": info['CPF usuário']}
-                #url = (f"http://{info['Banco atual']}:5060/check/account/id")
-                url = (f"http://{ip_teste}:{info['Banco atual']}/check/account/id")
+                url = (f"http://{info['Banco atual']}:5060/check/account/id")
                 status_code = requests.get(url, json=data).status_code
 
                 if status_code != 200:
@@ -255,8 +247,7 @@ def process_option(info: dict, utils: dict) -> dict:
                         "Chaves destinatários": [],
                         "Valores": [value]}
                 
-                #url = (f"http://{info['Banco atual']}:5060/request_package")
-                url = (f"http://{ip_teste}:{info['Banco atual']}/request_package")
+                url = (f"http://{info['Banco atual']}:5060/request_package")
                 response = requests.patch(url, json=data)
                 status_code = response.status_code
                 response = response.json()
@@ -283,8 +274,7 @@ def process_option(info: dict, utils: dict) -> dict:
                     raise ValueError("Valor inválido")
                 
                 data = {"ID conta": id_account, "CPF usuário": info['CPF usuário']}
-                #url = (f"http://{info['Banco atual']}:5060/check/account/id")
-                url = (f"http://{ip_teste}:{info['Banco atual']}/check/account/id")
+                url = (f"http://{info['Banco atual']}:5060/check/account/id")
                 status_code = requests.get(url, json=data).status_code
 
                 if status_code != 200:
@@ -296,8 +286,7 @@ def process_option(info: dict, utils: dict) -> dict:
                         "Chaves destinatários": [id_account],
                         "Valores": [value]}
                 
-                #url = (f"http://{info['Banco atual']}:5060/request_package")
-                url = (f"http://{ip_teste}:{info['Banco atual']}/request_package")
+                url = (f"http://{info['Banco atual']}:5060/request_package")
                 response = requests.patch(url, json=data)
                 status_code = response.status_code
                 response = response.json()
@@ -328,16 +317,16 @@ def process_option(info: dict, utils: dict) -> dict:
                     print(f"\n  > Pacote {i+1}")
 
                     bank_sender = input("  - Banco remetente: ").strip()
-                    #if utils["Formato padrão de IP"].match(bank_sender) == False:
-                    #    raise ValueError("IP inválido")
+                    if (not (re.match(r'^(\d{1,3}\.){3}\d{1,3}$', bank_sender))):
+                        raise ValueError("IP inválido")
 
                     id_sender = input("  - ID da conta remetente: ").strip()
                     if len(id_sender.replace(" ", "")) == 0:
                         raise ValueError("ID inválido")
                     
                     bank_recipient =  input("  - Banco destinatário: ").strip()
-                    #if utils["Formato padrão de IP"].match(bank_recipient) == False:
-                    #    raise ValueError("IP inválido")
+                    if (not (re.match(r'^(\d{1,3}\.){3}\d{1,3}$', bank_recipient))):
+                        raise ValueError("IP inválido")
 
                     id_recipient = input("  - ID da conta destinatária: ").strip()
                     if len(id_sender.replace(" ", "")) == 0:
@@ -357,15 +346,13 @@ def process_option(info: dict, utils: dict) -> dict:
 
                 for i in range(quantity):
                     data_ckeck = {"ID conta": data["Chaves remetentes"][i], "CPF usuário": info['CPF usuário']}
-                    #url = (f"http://{data['Bancos remetentes'][i]}:5060/check/account/id")
-                    url = (f"http://{ip_teste}:{data['Bancos remetentes'][i]}/check/account/id")
+                    url = (f"http://{data['Bancos remetentes'][i]}:5060/check/account/id")
                     status_code = requests.get(url, json=data_ckeck).status_code
 
                     if status_code != 200:
                         raise ValueError(f"Conta do pacote {i+1} não encontrada")
                 
-                #url = (f"http://{info['Banco atual']}:5060/request_package")
-                url = (f"http://{ip_teste}:{info['Banco atual']}/request_package")
+                url = (f"http://{info['Banco atual']}:5060/request_package")
                 response = requests.patch(url, json=data)
                 status_code = response.status_code
 
@@ -395,8 +382,7 @@ def process_option(info: dict, utils: dict) -> dict:
         if (info['Opção'] == '1'):
             try:
                 data = {"CPFs": [info['CPF usuário']], "Tipo de conta": ["Física","Pessoal"]}
-                #url = (f"http://{info['Banco atual']}:5060/register/account")
-                url = (f"http://{ip_teste}:{info['Banco atual']}/register/account")
+                url = (f"http://{info['Banco atual']}:5060/register/account")
                 response = requests.post(url, json=data)
                 status_code = response.status_code
                 response = response.json()
@@ -424,8 +410,8 @@ def process_option(info: dict, utils: dict) -> dict:
                 print()
                 for i in range(int(quantity)):
                     cpf = input(f"  - CPF do usuário {i+1}: ").strip()
-                    #if cpf.isdigit() == False or len(cpf) != 11:
-                    #    raise ValueError("CPF inválido")
+                    if cpf.isdigit() == False or len(cpf) != 11:
+                        raise ValueError("CPF inválido")
                     if cpf in cpfs:
                         raise ValueError("CPFs duplicados")
                     cpfs.append(cpf)
@@ -438,8 +424,7 @@ def process_option(info: dict, utils: dict) -> dict:
                 elif info['Opção'] == '3':
                     data = {"CPFs": cpfs, "Tipo de conta": ["Jurídica"]}
 
-                #url = (f"http://{info['Banco atual']}:5060/register/account")
-                url = (f"http://{ip_teste}:{info['Banco atual']}/register/account")
+                url = (f"http://{info['Banco atual']}:5060/register/account")
                 response = requests.post(url, json=data)
                 status_code = response.status_code
                 response = response.json()

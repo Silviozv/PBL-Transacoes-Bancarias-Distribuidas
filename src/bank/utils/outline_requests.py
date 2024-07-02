@@ -18,8 +18,7 @@ def send_request(database: object, url: str, ip_bank: str, data: dict, http_meth
         elif http_method == "PATCH":
             response = requests.patch(url, json=data, timeout=5)
 
-        #if url == (f"http://{ip_bank}:5060/ready_for_connection") and response.status_code != 200:
-        if url == (f"http://{database.ip_bank}:{ip_bank}/ready_for_connection") and response.status_code != 200:
+        if url == (f"http://{ip_bank}:5060/ready_for_connection") and response.status_code != 200:
             raise requests.exceptions.ConnectionError
         
     except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout) as e:

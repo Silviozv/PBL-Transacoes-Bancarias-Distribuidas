@@ -8,13 +8,10 @@ def add_packages_token(database: object, data_token: dict):
         if database.packages[key]["Adicionado ao token"] == False:
             with database.lock:
                 database.packages[key]["Adicionado ao token"] = True
-            #data_token["Pacotes"].append({"ID": key, "Dados": database.packages[key]["Dados"], "Origem": database.ip_bank})
-            data_token["Pacotes"].append({"ID": key, "Dados": database.packages[key]["Dados"], "Origem": database.port})
+            data_token["Pacotes"].append({"ID": key, "Dados": database.packages[key]["Dados"], "Origem": database.ip_bank})
 
 
 def process_packages(database: object, data_token: dict):
-    # FOI IMPLEMENTADA  A TRANSFERÊNCIA, AGORA É NECESSÁRIO FAZER A LÓGICA DO BANCO CENTRAL  
-
     with database.lock:
         database.processing_package = True
 
@@ -28,15 +25,13 @@ def process_packages(database: object, data_token: dict):
             result_dict = create_result_structure(1)
 
             if quantity_senders > quantity_receivers:
-                #url = (f"http://{data_token['Pacotes'][i]['Dados']['Bancos remetentes'][0]}:5060/withdraw")
-                url = (f"http://{database.ip_bank}:{data_token['Pacotes'][i]['Dados']['Bancos remetentes'][0]}/withdraw")
+                url = (f"http://{data_token['Pacotes'][i]['Dados']['Bancos remetentes'][0]}:5060/withdraw")
                 data = {"Chave": data_token["Pacotes"][i]["Dados"]["Chaves remetentes"][0], 
                         "Valor": data_token["Pacotes"][i]["Dados"]["Valores"][0]}
                 threading.Thread(target=send_request, args=(database, url, data_token["Pacotes"][i]["Dados"]["Bancos remetentes"][0], data, "PATCH", result_dict, 0,)).start()
 
             else:
-                #url = (f"http://{data_token['Pacotes'][i]['Dados']['Bancos destinatários'][0]}:5060/deposit")
-                url = (f"http://{database.ip_bank}:{data_token['Pacotes'][i]['Dados']['Bancos destinatários'][0]}/deposit")
+                url = (f"http://{data_token['Pacotes'][i]['Dados']['Bancos destinatários'][0]}:5060/deposit")
                 data = {"Chave": data_token["Pacotes"][i]["Dados"]["Chaves destinatários"][0], 
                         "Valor": data_token["Pacotes"][i]["Dados"]["Valores"][0]}
                 threading.Thread(target=send_request, args=(database, url, data_token["Pacotes"][i]["Dados"]["Bancos destinatários"][0], data, "PATCH", result_dict, 0,)).start()
@@ -57,8 +52,7 @@ def process_packages(database: object, data_token: dict):
             result_dict = create_result_structure(quantity)
 
             for j in range(quantity):
-                #url = (f"http://{data_token["Pacotes"][i]["Dados"]["Bancos remetentes"][j]}:5060/send_transfer")
-                url = (f"http://{database.ip_bank}:{data_token['Pacotes'][i]['Dados']['Bancos remetentes'][j]}/send_transfer")
+                url = (f"http://{data_token['Pacotes'][i]['Dados']['Bancos remetentes'][j]}:5060/send_transfer")
                 data = {"Chave remetente": data_token["Pacotes"][i]["Dados"]["Chaves remetentes"][j], 
                         "Banco destinatário": data_token["Pacotes"][i]["Dados"]["Bancos destinatários"][j], 
                         "Chave destinatário": data_token["Pacotes"][i]["Dados"]["Chaves destinatários"][j], 
@@ -85,8 +79,7 @@ def process_packages(database: object, data_token: dict):
             for j in range(quantity):
 
                 if j not in failure_transactions:
-                    #url = (f"http://{data_token['Pacotes'][i]['Dados']['Bancos remetentes'][j]}:5060/send_release_transfer")
-                    url = (f"http://{database.ip_bank}:{data_token['Pacotes'][i]['Dados']['Bancos remetentes'][j]}/send_release_transfer")
+                    url = (f"http://{data_token['Pacotes'][i]['Dados']['Bancos remetentes'][j]}:5060/send_release_transfer")
                     data = {"Chave remetente": data_token["Pacotes"][i]["Dados"]["Chaves remetentes"][j], 
                             "Banco destinatário": data_token["Pacotes"][i]["Dados"]["Bancos destinatários"][j], 
                             "Chave destinatário": data_token["Pacotes"][i]["Dados"]["Chaves destinatários"][j], 
@@ -99,8 +92,7 @@ def process_packages(database: object, data_token: dict):
                 data = {"Bem sucedido": successful_package, 
                         "ID": data_token["Pacotes"][i]["ID"], 
                         "Justificativas": failure_justifications}
-                # url = (f"http://{data_token['Pacotes'][i]['Origem']}:5060/confirm_package_execution")
-                url = (f"http://{database.ip_bank}:{data_token['Pacotes'][i]['Origem']}/confirm_package_execution")
+                url = (f"http://{data_token['Pacotes'][i]['Origem']}:5060/confirm_package_execution")
                 response = requests.patch(url, json=data, timeout=5)
 
             except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout):

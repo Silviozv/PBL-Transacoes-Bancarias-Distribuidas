@@ -11,14 +11,9 @@ class Database:
     lock: object
 
     def __init__(self):
-        ##
-        self.port = "5080"
-        ##
         self.ip_bank = socket.gethostbyname(socket.gethostname())
-        #self.banks = [self.ip_bank]
-        self.banks = [self.port]
-        #self.banks_recconection = {self.ip_bank: False}
-        self.banks_recconection = {self.port: False}
+        self.banks = [self.ip_bank]
+        self.banks_recconection = {self.ip_bank: False}
         self.index_actual_bank = None
 
         self.accounts = {}
@@ -71,13 +66,11 @@ class Database:
         with self.lock:
             self.packages[id]["Adicionado ao token"] = True
 
-
    
     def count_banks_on(self):
         count = 0
         for ip in self.banks_recconection.keys():
-            #if ip != self.ip_bank and self.banks_recconection[ip] == False:
-            if ip != self.port and self.banks_recconection[ip] == False:
+            if ip != self.ip_bank and self.banks_recconection[ip] == False:
                 count += 1
         return count
 
@@ -95,8 +88,7 @@ class Database:
 
     def find_index_actual_bank(self):
         for i in range(len(self.banks)):
-            #if self.banks[i] == self.ip_bank:
-            if self.banks[i] == self.port:
+            if self.banks[i] == self.ip_bank:
                 self.index_actual_bank = i
                 return
 
@@ -119,8 +111,7 @@ class Database:
                 else:
                     if self.banks_recconection[self.banks[index]] == False:
                         try:
-                            #url = (f"http://{self.banks[index]}:5060/ready_for_connection")
-                            url = (f"http://{self.ip_bank}:{self.banks[index]}/ready_for_connection")
+                            url = (f"http://{self.banks[index]}:5060/ready_for_connection")
                             status_code = requests.get(url, timeout=5).status_code
 
                             if status_code == 200:
@@ -135,8 +126,7 @@ class Database:
 
             else:
                 found = True
-                #next_bank = self.ip_bank
-                next_bank = self.port
+                next_bank = self.ip_bank
         return next_bank
 
    
@@ -150,8 +140,7 @@ class Database:
             if index != self.index_actual_bank:
                 if self.banks_recconection[self.banks[index]] == False:
                     try:
-                        # url = (f"http://{self.banks[index]}:5060/ready_for_connection")
-                        url = (f"http://{self.ip_bank}:{self.banks[index]}/ready_for_connection")
+                        url = (f"http://{self.banks[index]}:5060/ready_for_connection")
                         status_code = requests.get(url, timeout=5).status_code
 
                         if status_code == 200:
@@ -165,8 +154,7 @@ class Database:
                 index += 1
 
             else:
-                #first_bank = self.ip_bank
-                first_bank = self.port
+                first_bank = self.ip_bank
                 found = True
 
         return first_bank
@@ -176,8 +164,7 @@ class Database:
         loop = True
         while loop == True:
             try:
-                #url = (f"http://{ip_bank}:5060/ready_for_connection")
-                url = (f"http://{self.ip_bank}:{ip_bank}/ready_for_connection")
+                url = (f"http://{ip_bank}:5060/ready_for_connection")
                 status_code = requests.get(url, timeout=5).status_code
 
                 if status_code == 200:

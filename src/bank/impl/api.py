@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request
 import threading
+import re
 
 import impl.bank_impl as bank_impl
 import impl.register_impl as register_impl
@@ -19,11 +20,6 @@ def ready_for_connection():
         return jsonify(response), 200
     else:
         return jsonify(response), 404
-
-
-@app.route('/show', methods=['GET'])
-def show_all():
-    return jsonify(bank_impl.show_all(database)), 200
 
 
 @app.route('/register/user', methods=['POST'])
@@ -227,7 +223,26 @@ def check_it_has_token():
 
 
 def start():
-    list_banks = ["5080", "5090", "5070", "5060"]
-    threading.Thread(target=token_impl.count_time_token, args=(database, len(list_banks) * 10,)).start()
-    threading.Thread(target=bank_impl.add_consortium, args=(database, list_banks,)).start()
-    app.run(port=5080, host='0.0.0.0')
+    print(f"\nIP atual: {database.ip_bank}")
+
+    quantity = input("\nQuantidade de bancos do consórcio: ")
+    try:
+        quantity = int(quantity)
+
+        if quantity <= 0:
+            raise ValueError
+
+        list_banks = []
+        print()
+        for i in range(quantity):
+            bank = input(f"Banco {i+1}: ")
+            if (not (re.match(r'^(\d{1,3}\.){3}\d{1,3}$', bank))):
+                raise ValueError
+            list_banks.append(bank)
+
+        threading.Thread(target=token_impl.count_time_token, args=(database, len(list_banks) * 10,)).start()
+        threading.Thread(target=bank_impl.add_consortium, args=(database, list_banks,)).start()
+        app.run(port=5060, host='0.0.0.0')
+
+    except ValueError:
+        print("Dado inválido.")

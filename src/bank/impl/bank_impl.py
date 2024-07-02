@@ -22,15 +22,13 @@ def check_user(database: dict, data_check: dict):
 def get_account_consortium(database: dict, data_user: dict):
     accounts = {}
     for i in range(len(database.banks)):
-        #if database.banks[i] == database.ip_bank:
-        if database.banks[i] == database.port:
+        if database.banks[i] == database.ip_bank:
             response = get_account_by_user(database, data_user)
             if response["Bem sucedido"] == True:
                 accounts[database.banks[i]] = response["Contas"]
         else:
             try:
-                #url = (f"http://{database.banks[i]}:5060/get/account/user")
-                url = (f"http://{database.ip_bank}:{database.banks[i]}/get/account/user")
+                url = (f"http://{database.banks[i]}:5060/get/account/user")
                 response = requests.get(url, json=data_user, timeout=5)
 
                 if response.status_code == 200:
@@ -80,17 +78,14 @@ def check_account_by_id(database: dict, data_account: dict):
 
 
 def add_consortium(database: object, list_ip_banks: list):
-    #if database.ip_bank in list_ip_banks:
-    if database.port in list_ip_banks:
-        #list_ip_banks.remove(database.ip_bank)
-        list_ip_banks.remove(database.port)
+    if database.ip_bank in list_ip_banks:
+        list_ip_banks.remove(database.ip_bank)
 
     result_dict = create_result_structure(len(list_ip_banks))
 
     for i in range(len(list_ip_banks)):
         database.add_bank(list_ip_banks[i])
-        #url = (f"http://{list_ip_banks[i]}:5060/ready_for_connection")
-        url = (f"http://{database.ip_bank}:{list_ip_banks[i]}/ready_for_connection")
+        url = (f"http://{list_ip_banks[i]}:5060/ready_for_connection")
         threading.Thread(target=send_request, args=(database, url, list_ip_banks[i], "", "GET", result_dict, i,)).start()
 
     loop = True
@@ -113,24 +108,19 @@ def start_system(database: object):
         while database.count_banks_on() == 0:
             pass
 
-        # if database.find_first_bank() == database.ip_bank:
-        if database.find_first_bank() == database.port:
-            # url = (f"http://{database.find_next_bank()}:5060/check_first_pass_token")
-            url = (f"http://{database.ip_bank}:{database.find_next_bank()}/check_first_pass_token")
+        if database.find_first_bank() == database.ip_bank:
+            url = (f"http://{database.find_next_bank()}:5060/check_first_pass_token")
             response = requests.get(url).json()
 
             if response["Token está no sistema"] == False:
 
-                # data_token = database.token.create_token(database.ip_bank, database.banks)
-                data_token = database.token.create_token(database.port, database.banks)
+                data_token = database.token.create_token(database.ip_bank, database.banks)
                 database.token.set_id(data_token["ID token"])
                 add_packages_token(database, data_token)
 
-                #data_token["Contadora de passagem do token"][database.ip_bank] += 1
-                data_token["Contadora de passagem do token"][database.port] += 1
+                data_token["Contadora de passagem do token"][database.ip_bank] += 1
 
-                # url = (f"http://{database.find_next_bank()}:5060/token_pass")
-                url = (f"http://{database.ip_bank}:{database.find_next_bank()}/token_pass")
+                url = (f"http://{database.find_next_bank()}:5060/token_pass")
                 response = requests.post(url, json=data_token).json()
 
             database.token.set_is_passing(True)
@@ -140,14 +130,11 @@ def start_system(database: object):
 
 def teste(database: object):
     database.ready_for_connection = True
-    # data_token = database.token.create_token(database.ip_bank, database.banks)
-    data_token = database.token.create_token(database.port, database.banks)
+    data_token = database.token.create_token(database.ip_bank, database.banks)
     database.token.set_id(data_token["ID token"])
     add_packages_token(database, data_token)
-    #data_token["Contadora de passagem do token"][database.ip_bank] += 1
-    data_token["Contadora de passagem do token"][database.port] += 1
-    # url = (f"http://{database.find_next_bank()}:5060/token_pass")
-    url = (f"http://{database.ip_bank}:5060/token_pass")
+    data_token["Contadora de passagem do token"][database.ip_bank] += 1
+    url = (f"http://{database.find_next_bank()}:5060/token_pass")
     response = requests.post(url, json=data_token).json()
     database.token.set_is_passing(True)
     
@@ -183,8 +170,7 @@ def send_transfer(database: object, data_transfer: dict) -> dict:
             response = {"Bem sucedido": False, "Justificativa": "Saldo insuficiente"}
 
         else:
-            #if data_transfer["Banco destinatário"] == database.ip_bank:
-            if data_transfer["Banco destinatário"] == database.port:
+            if data_transfer["Banco destinatário"] == database.ip_bank:
 
                 if data_transfer["Chave destinatário"] not in database.accounts:
                     response = {"Bem sucedido": False, "Justificativa": "Conta do destinatário não encontrada"}
@@ -200,8 +186,7 @@ def send_transfer(database: object, data_transfer: dict) -> dict:
                 else:
                     try:
                         data_receive = {"Chave destinatário": data_transfer["Chave destinatário"], "Valor": data_transfer["Valor"]}
-                        # url = (f"http://{data_transfer['Banco destinatário']}:5060/receive_transfer")
-                        url = (f"http://{database.ip_bank}:{data_transfer['Banco destinatário']}/receive_transfer")
+                        url = (f"http://{data_transfer['Banco destinatário']}:5060/receive_transfer")
                         response = requests.patch(url, json=data_receive, timeout=5)
 
                         if response.status_code == 200:
@@ -231,8 +216,7 @@ def receive_transfer(database: object, data_transfer: dict) -> dict:
 
 def send_release_transfer(database: object, data_transfer: dict) -> dict:
  
-    #if data_transfer["Banco destinatário"] == database.ip_bank:
-    if data_transfer["Banco destinatário"] == database.port:
+    if data_transfer["Banco destinatário"] == database.ip_bank:
         
         if data_transfer["Execução bem sucedida do pacote"] == True:
             database.accounts[data_transfer["Chave destinatário"]].withdraw_blocked_balance(data_transfer["Valor"])
@@ -251,8 +235,7 @@ def send_release_transfer(database: object, data_transfer: dict) -> dict:
         else:
             try:
                 data_receive = {"Chave destinatário": data_transfer["Chave destinatário"], "Valor": data_transfer["Valor"], "Execução bem sucedida do pacote": data_transfer["Execução bem sucedida do pacote"]}
-                # url = (f"http://{data_transfer['Banco destinatário']}:5060/receive_release_transfer")
-                url = (f"http://{database.ip_bank}:{data_transfer['Banco destinatário']}/receive_release_transfer")
+                url = (f"http://{data_transfer['Banco destinatário']}:5060/receive_release_transfer")
                 response = requests.patch(url, json=data_receive, timeout=5)
 
                 if response.status_code != 200 or data_transfer["Execução bem sucedida do pacote"] == False:
@@ -282,22 +265,4 @@ def receive_release_transfer(database: object, data_transfer: dict) -> dict:
         response = {"Bem sucedido": True}
     
     return response
-                
-
-### Teste ###
-def show_all(database: object):
-    print("\n--- BANCOS ---")
-    print()
-    for i in range(len(database.banks)):
-        print(database.banks[i])
-    print()
-
-    print("--- USUÁRIOS ---")
-    for key in database.users.keys():
-        print()
-        database.users[key].show_attributes()
-
-    print("\n--- CONTAS ---")
-    for key in database.accounts.keys():
-        print()
-        database.accounts[key].show_attributes()
+            
