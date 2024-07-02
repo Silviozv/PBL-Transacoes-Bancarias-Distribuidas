@@ -11,7 +11,6 @@ def start():
 
     info = {}
     info['Menu atual'] = 'Inicial'
-    info['IP servidor'] = ''
     info['Nome usuário'] = ''
     info['CPF usuário'] = ''
     info['Banco atual'] = ''
@@ -39,7 +38,7 @@ def show_screen( info: dict):
     if ( info['Menu atual'] == 'Inicial'):
         menu = {'1': 'FAZER LOGIN', '2': 'FAZER CADASTRO', '3': 'SAIR'}
     elif ( info['Menu atual'] == 'Usuário logado'):
-        menu = {'1': 'CRIAR CONTA', '2': 'CONSULTAR CONTAS NO CONSÓRCIO', '3': 'VOLTAR'}
+        menu = {'1': 'CRIAR CONTA', '2': 'CONSULTAR CONTAS NO CONSÓRCIO', '3': 'SACAR', '4': 'DEPOSITAR', '5': 'REQUISITAR PACOTE DE TRANSFERÊNCIA', '6': 'VOLTAR'}
     elif ( info['Menu atual'] == 'Criando conta'):
         menu = {'1': 'FÍSICA PESSOAL', '2': 'FÍSICA CONJUNTA', '3': 'JURÍDICA', '4': 'VOLTAR'}
 
@@ -51,6 +50,17 @@ def show_screen( info: dict):
         space_after = 77 - (len(text) + space_before)
         print("|" + " " * space_before + text + " " * space_after + "|")
     print("|" + " " * 77 + "|")
+    print("+-----------------------------------------------------------------------------+")
+
+    if ( info['Menu atual'] != 'Inicial'):
+        text_bank = f"Banco: {info['Banco atual']}"
+        space_before_bank = (38 - len(text_bank)) // 2
+        space_after_bank = 38 - (len(text_bank) + space_before_bank)
+        text_name = f"Usuário: {info['Nome usuário']}"
+        space_before_name = (38 - len(text_name)) // 2
+        space_after_name = 38 - (len(text_name) + space_before_name)
+        print("|" + " " * space_before_bank + text_bank + " " * space_after_bank + "|" + " " * space_before_name + text_name + " " * space_after_name + "|")
+    
     print("+-----------------------------------------------------------------------------+")
 
     if ( info['Informação a ser exibida'] != ''):
@@ -110,6 +120,18 @@ def show_screen( info: dict):
 
                         print("|" + " " * 77 + "|")
 
+            elif info['Tipo de informação a ser exibida'] == 'Justificativas de falha dos pacotes':
+                text = "Falha ao executar o pacote"
+                space_after = 77 - (len(text) + 4)
+                print("|    " + text + " " * space_after + "|")
+
+                for key in info['Informação a ser exibida'].keys():
+                    text = f"Transferência {int(key)+1}: {info['Informação a ser exibida'][key]}"
+                    space_after = 77 - (len(text) + 4)
+                    print("|    " + text + " " * space_after + "|")
+
+                print("|" + " " * 77 + "|")
+
 
 
         print("+-----------------------------------------------------------------------------+")
@@ -153,8 +175,10 @@ def process_option(info: dict, utils: dict) -> dict:
         elif (info['Opção'] == '2'):
             try:
                 name = input("\n  - Nome: ").strip()
-                if name.isalpha() == False:
+                if name.replace(" ", "").isalpha() == False:
                     raise ValueError("Nome inválido")
+                if len(name) > 27:
+                    raise ValueError("Nome muito extenso")
                 cpf = input("  - CPF: ").strip()
                 #if cpf.isdigit() == False or len(cpf) != 11:
                 #    raise ValueError("CPF inválido")
@@ -207,6 +231,158 @@ def process_option(info: dict, utils: dict) -> dict:
                 info['Informação a ser exibida'] = 'Nenhuma conta foi encontrada'
 
         elif (info['Opção'] == '3'):
+            try:
+                id_account = input("\n  - ID da conta: ").strip()
+                if len(id_account.replace(" ", "")) == 0:
+                    raise ValueError("ID inválido")
+                value = input("  - Valor: ").strip()
+                try:
+                    float(value)
+                except ValueError:
+                    raise ValueError("Valor inválido")
+                
+                data = {"ID conta": id_account, "CPF usuário": info['CPF usuário']}
+                #url = (f"http://{info['Banco atual']}:5060/check/account/id")
+                url = (f"http://{ip_teste}:{info['Banco atual']}/check/account/id")
+                status_code = requests.get(url, json=data).status_code
+
+                if status_code != 200:
+                    raise ValueError("Conta não encontrada")
+
+                data = {"Bancos remetentes": [info['Banco atual']],
+                        "Chaves remetentes": [id_account],
+                        "Bancos destinatários": [],
+                        "Chaves destinatários": [],
+                        "Valores": [value]}
+                
+                #url = (f"http://{info['Banco atual']}:5060/request_package")
+                url = (f"http://{ip_teste}:{info['Banco atual']}/request_package")
+                response = requests.patch(url, json=data)
+                status_code = response.status_code
+                response = response.json()
+
+                if status_code == 200:
+                    info['Informação a ser exibida'] = 'Saque realizado'
+                else:
+                    info['Informação a ser exibida'] = response["Justificativas"]["0"]
+                
+            except (ValueError) as e:
+                info['Informação a ser exibida'] = str(e)
+            except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout):
+                info['Informação a ser exibida'] = 'Não foi possível fazer a conexão'
+
+        elif (info['Opção'] == '4'):
+            try:
+                id_account = input("\n  - ID da conta: ").strip()
+                if len(id_account.replace(" ", "")) == 0:
+                    raise ValueError("ID inválido")
+                value = input("  - Valor: ").strip()
+                try:
+                    float(value)
+                except ValueError:
+                    raise ValueError("Valor inválido")
+                
+                data = {"ID conta": id_account, "CPF usuário": info['CPF usuário']}
+                #url = (f"http://{info['Banco atual']}:5060/check/account/id")
+                url = (f"http://{ip_teste}:{info['Banco atual']}/check/account/id")
+                status_code = requests.get(url, json=data).status_code
+
+                if status_code != 200:
+                    raise ValueError("Conta não encontrada")
+
+                data = {"Bancos remetentes": [],
+                        "Chaves remetentes": [],
+                        "Bancos destinatários": [info['Banco atual']],
+                        "Chaves destinatários": [id_account],
+                        "Valores": [value]}
+                
+                #url = (f"http://{info['Banco atual']}:5060/request_package")
+                url = (f"http://{ip_teste}:{info['Banco atual']}/request_package")
+                response = requests.patch(url, json=data)
+                status_code = response.status_code
+                response = response.json()
+
+                if status_code == 200:
+                    info['Informação a ser exibida'] = 'Depósito realizado'
+                else:
+                    info['Informação a ser exibida'] = response["Justificativas"]["0"]
+                
+            except (ValueError) as e:
+                info['Informação a ser exibida'] = str(e)
+            except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout):
+                info['Informação a ser exibida'] = 'Não foi possível fazer a conexão'
+
+        elif (info['Opção'] == '5'):
+            try:
+                quantity = input("\n  - Quantidade transferências: ").strip()
+                if quantity.isdigit() == False or int(quantity) <= 0:
+                    raise ValueError("Quantidade inválida")
+                quantity = int(quantity)
+
+                data = {"Bancos remetentes": [], 
+                        "Chaves remetentes": [], 
+                        "Bancos destinatários": [],
+                        "Chaves destinatários": [],
+                        "Valores": []}
+                for i in range(quantity):
+                    print(f"\n  > Pacote {i+1}")
+
+                    bank_sender = input("  - Banco remetente: ").strip()
+                    #if utils["Formato padrão de IP"].match(bank_sender) == False:
+                    #    raise ValueError("IP inválido")
+
+                    id_sender = input("  - ID da conta remetente: ").strip()
+                    if len(id_sender.replace(" ", "")) == 0:
+                        raise ValueError("ID inválido")
+                    
+                    bank_recipient =  input("  - Banco destinatário: ").strip()
+                    #if utils["Formato padrão de IP"].match(bank_recipient) == False:
+                    #    raise ValueError("IP inválido")
+
+                    id_recipient = input("  - ID da conta destinatária: ").strip()
+                    if len(id_sender.replace(" ", "")) == 0:
+                        raise ValueError("ID inválido")
+                    
+                    value = input("  - Valor: ").strip()
+                    try:
+                        float(value)
+                    except ValueError:
+                        raise ValueError("Valor inválido")
+                    
+                    data["Bancos remetentes"].append(bank_sender)
+                    data["Chaves remetentes"].append(id_sender) 
+                    data["Bancos destinatários"].append(bank_recipient)
+                    data["Chaves destinatários"].append(id_recipient)
+                    data["Valores"].append(value)
+
+                for i in range(quantity):
+                    data_ckeck = {"ID conta": data["Chaves remetentes"][i], "CPF usuário": info['CPF usuário']}
+                    #url = (f"http://{data["Bancos remetentes"][i]}:5060/check/account/id")
+                    url = (f"http://{ip_teste}:{data['Bancos remetentes'][i]}/check/account/id")
+                    status_code = requests.get(url, json=data_ckeck).status_code
+
+                    if status_code != 200:
+                        raise ValueError(f"Conta do pacote {i+1} não encontrada")
+                
+                #url = (f"http://{info['Banco atual']}:5060/request_package")
+                url = (f"http://{ip_teste}:{info['Banco atual']}/request_package")
+                response = requests.patch(url, json=data)
+                status_code = response.status_code
+
+                if status_code == 200:
+                    info['Informação a ser exibida'] = 'Pacote executado com sucesso'
+                else:
+                    response = response.json()
+                    info['Tipo de informação a ser exibida'] = 'Justificativas de falha dos pacotes'
+                    info['Informação a ser exibida'] = response["Justificativas"]
+
+            except (ValueError) as e:
+                info['Informação a ser exibida'] = str(e)
+            except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout):
+                info['Informação a ser exibida'] = 'Não foi possível fazer a conexão'
+
+
+        elif (info['Opção'] == '6'):
             info['Menu atual'] = 'Inicial'
             info['Informação a ser exibida'] = ''
 
