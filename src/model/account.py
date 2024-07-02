@@ -18,11 +18,13 @@ class Account:
 
         self.lock = threading.Lock()
 
+
     def deposit_balance(self, value: str) -> dict:
         with self.lock:
             self.balance += float(value)
         response = {"Bem sucedido": True}
         return response
+
 
     def withdraw_balance(self, value: str) -> dict:
         if self.balance >= float(value):
@@ -34,11 +36,13 @@ class Account:
         
         return response
         
+
     def deposit_blocked_balance(self, value: str) -> dict:
         with self.lock:
             self.blocked_balance += float(value)
         response = {"Bem sucedido": True}
         return response
+
 
     def withdraw_blocked_balance(self, value: str) -> dict:
         if self.blocked_balance >= float(value):

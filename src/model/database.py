@@ -3,6 +3,7 @@ import socket
 import requests
 from model.token import Token
 
+
 class Database:
     accounts: dict
     users: dict
@@ -11,7 +12,7 @@ class Database:
 
     def __init__(self):
         ##
-        self.port = "5090"
+        self.port = "5080"
         ##
         self.ip_bank = socket.gethostbyname(socket.gethostname())
         #self.banks = [self.ip_bank]
@@ -34,20 +35,23 @@ class Database:
 
         self.lock = threading.Lock()
 
+
     def set_token_problem_alert(self, token_problem_alert: bool):
         with self.lock:
             self.token_problem_alert = token_problem_alert
 
-    # Teste
+    
     def add_bank(self, ip_bank: str):
         with self.lock:
             self.banks.append(ip_bank)
             self.banks_recconection[ip_bank] = False
 
+
     def add_account(self, account: object):
         with self.lock:
             self.count_accounts += 1
             self.accounts[account.key] = account
+
 
     def calculate_key(self) -> str:
         key = "AC" + str(self.count_accounts)
@@ -62,12 +66,13 @@ class Database:
 
         return id
 
+
     def set_send_package_to_execution(self, id: str):
         with self.lock:
             self.packages[id]["Adicionado ao token"] = True
 
 
-    # Teste
+   
     def count_banks_on(self):
         count = 0
         for ip in self.banks_recconection.keys():
@@ -76,7 +81,7 @@ class Database:
                 count += 1
         return count
 
-    # Teste
+    
     def sort_ip_banks(self):
         for i in range(1, len(self.banks)):
             insert_index = i
@@ -87,6 +92,7 @@ class Database:
             self.banks.insert(insert_index, current_value)
         self.find_index_actual_bank()
 
+
     def find_index_actual_bank(self):
         for i in range(len(self.banks)):
             #if self.banks[i] == self.ip_bank:
@@ -94,7 +100,7 @@ class Database:
                 self.index_actual_bank = i
                 return
 
-    # Teste
+   
     def find_next_bank(self):
         next_bank = ""
         found = False
@@ -133,7 +139,7 @@ class Database:
                 next_bank = self.port
         return next_bank
 
-    # Teste
+   
     def find_first_bank(self):
         first_bank = ""
         found = False
@@ -165,7 +171,7 @@ class Database:
 
         return first_bank
 
-    # Teste
+   
     def loop_reconnection(self, ip_bank: str):
         loop = True
         while loop == True:
@@ -184,7 +190,7 @@ class Database:
             except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout) as e:
                 pass
 
-    # Teste
+
     def find_account(self, key: str) -> object:
         if key not in self.accounts:
             account = None
@@ -192,17 +198,4 @@ class Database:
             account = self.accounts[key]
 
         return account
-
-    # Teste
-    def check_connections(self):
-        for i in range(len(self.banks)):
-            try:
-                url = (f"http://{self.banks[i]}:5070/")
-                requests.head(url)
-            except (requests.exceptions.ConnectionError) as e:
-                if self.banks_recconection[self.banks[i]] == False:
-                    with self.lock:
-                        self.banks_recconection[self.banks[i]] = True
-                    threading.Thread( target=self.loop_reconnection, args=(self.banks[i],)).start()
-
 

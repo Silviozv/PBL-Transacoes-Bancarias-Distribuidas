@@ -1,11 +1,13 @@
 import threading
 import requests
 
+
 def create_result_structure(quantity: int) -> dict:
     result_dict = {}
     for i in range(quantity):
         result_dict[i] = {"Terminado": False, "Resposta": None}
     return result_dict
+
 
 def send_request(database: object, url: str, ip_bank: str, data: dict, http_method: str, result_dict: dict, index: str):
     try:

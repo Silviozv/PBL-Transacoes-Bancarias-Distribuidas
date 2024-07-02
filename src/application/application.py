@@ -463,13 +463,7 @@ def process_option(info: dict, utils: dict) -> dict:
         
         else:
             info['Informação a ser exibida'] = 'Opção inválida'
-
-
-
-
-
-
-
+            
 
 def clear_terminal():
     if os.name == 'nt':  

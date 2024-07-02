@@ -1,6 +1,7 @@
 import threading
 from datetime import datetime
 
+
 class Token:
 
     def __init__(self):
@@ -16,17 +17,21 @@ class Token:
         with self.lock:
             self.it_has = it_has
 
+
     def set_is_passing(self, is_passing: bool):
         with self.lock:
             self.is_passing = is_passing
+
 
     def set_time(self, time: int):
         with self.lock:
             self.time = time
 
+
     def set_id(self, id: str):
         with self.lock:
             self.current_id = id
+
 
     def reset_all_atributes(self):
         with self.lock:
@@ -34,6 +39,7 @@ class Token:
             self.it_has = False
             self.time = 0
             self.current_id = None
+
 
     def create_token(self, ip_bank: str, banks: list) -> dict:
         date_time = datetime.now()

@@ -47,6 +47,7 @@ def get_account_consortium(database: dict, data_user: dict):
 
     return response
 
+
 def get_account_by_user(database: dict, data_user: dict):
     accounts = []
     for key in database.accounts.keys():
@@ -151,7 +152,6 @@ def teste(database: object):
     database.token.set_is_passing(True)
     
 
-# PARTE DAS TRANSAÇÕES ANTIGAS
 def deposit(database: object, data_deposit: dict) -> dict:
     account = database.find_account(data_deposit["Chave"])
 
@@ -174,7 +174,6 @@ def withdraw(database: object, data_withdraw: dict) -> dict:
     return response
 
 
-# FALTA FAZER O SALDO BLOQUEADO CASO O PACOTE TENHA ALGUM ERRO
 def send_transfer(database: object, data_transfer: dict) -> dict:
     if data_transfer["Chave remetente"] not in database.accounts:
         response = {"Bem sucedido": False, "Justificativa": "Conta do remetente não encontrada"}

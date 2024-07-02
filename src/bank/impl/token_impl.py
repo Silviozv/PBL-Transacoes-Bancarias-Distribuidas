@@ -111,7 +111,6 @@ def check_token_validity(database: object, data_token: dict):
 
 
 def token_pass(database: object, data_token: dict):
-    #input()
     loop = True
     while loop == True:
         if database.token_problem_alert == False:

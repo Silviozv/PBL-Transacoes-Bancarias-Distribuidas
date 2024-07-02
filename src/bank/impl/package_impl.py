@@ -12,7 +12,6 @@ def add_packages_token(database: object, data_token: dict):
             data_token["Pacotes"].append({"ID": key, "Dados": database.packages[key]["Dados"], "Origem": database.port})
 
 
-
 def process_packages(database: object, data_token: dict):
     # FOI IMPLEMENTADA  A TRANSFERÊNCIA, AGORA É NECESSÁRIO FAZER A LÓGICA DO BANCO CENTRAL  
 
