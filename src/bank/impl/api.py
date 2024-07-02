@@ -86,6 +86,18 @@ def get_account_by_user():
         return jsonify(response), 404
 
 
+@app.route('/check/account/id', methods=['GET'])
+def check_account_by_id():
+
+    data_account = request.json
+    response = bank_impl.check_account_by_id(database, data_account)
+
+    if response["Bem sucedido"] == True:
+        return jsonify(response), 200
+    else:
+        return jsonify(response), 404
+
+
 @app.route('/deposit', methods=['PATCH'])
 def deposit_value():
 
@@ -218,4 +230,4 @@ def start():
     list_banks = ["5080", "5090", "5070", "5060"]
     threading.Thread(target=token_impl.count_time_token, args=(database, len(list_banks) * 10,)).start()
     threading.Thread(target=bank_impl.add_consortium, args=(database, list_banks,)).start()
-    app.run(port=5070, host='0.0.0.0')
+    app.run(port=5080, host='0.0.0.0')

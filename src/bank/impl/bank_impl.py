@@ -66,6 +66,18 @@ def get_account_by_user(database: dict, data_user: dict):
     return response
 
 
+def check_account_by_id(database: dict, data_account: dict):
+    if data_account["ID conta"] in database.accounts.keys():
+        if data_account['CPF usuário'] in database.accounts[data_account["ID conta"]].cpfs:
+            response = {"Bem sucedido": True}
+        else:
+            response = {"Bem sucedido": False}
+    else:
+        response = {"Bem sucedido": False}
+
+    return response
+
+
 def add_consortium(database: object, list_ip_banks: list):
     #if database.ip_bank in list_ip_banks:
     if database.port in list_ip_banks:
