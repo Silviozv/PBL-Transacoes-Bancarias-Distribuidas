@@ -20,7 +20,7 @@ def count_time_token(database: object, count_limit: int):
     database.token.set_time(0)
     quantity = int(count_limit/10)
     while True:
-        if database.token.is_passing == True and database.token.it_has == False:
+        if database.token.is_passing == True and database.processing_package == False:
             database.token.set_time(database.token.time + 1)
 
             if database.token.time > count_limit:
@@ -111,21 +111,36 @@ def check_token_validity(database: object, data_token: dict):
 
 
 def token_pass(database: object, data_token: dict):
-    if database.token_problem_alert == False:
-        next_bank = database.find_next_bank()
-        #if next_bank != database.ip_bank:
-        if next_bank != database.port:
-            # url = (f"http://{database.find_next_bank()}:5070/token_pass")
-            url = (f"http://{database.ip_bank}:{database.find_next_bank()}/token_pass")
-            status_code = requests.post(url, json=data_token).status_code
+    #input()
+    loop = True
+    while loop == True:
+        if database.token_problem_alert == False:
+            next_bank = database.find_next_bank()
+            try:
+                #if next_bank != database.ip_bank:
+                if next_bank != database.port:
 
-            if status_code == 200:
-                database.token.set_it_has(False)
-                database.token.set_time(0)
+                        # url = (f"http://{next_bank()}:5070/token_pass")
+                        url = (f"http://{database.ip_bank}:{next_bank}/token_pass")
+                        status_code = requests.post(url, json=data_token, timeout=5).status_code
 
+                        if status_code == 200:
+                            database.token.set_it_has(False)
+                            database.token.set_time(0)
+
+                else:
+                    database.token.reset_all_atributes()
+                    start_system(database)
+                
+                loop = False
+
+            except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout) as e:
+                with database.lock:
+                    database.banks_recconection[next_bank] = True
+                threading.Thread(target=database.loop_reconnection, args=(next_bank,)).start()
+        
         else:
-            database.token.reset_all_atributes()
-            start_system(database)
+            loop = False
 
 
 def send_problem_alert(database: object):
