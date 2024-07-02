@@ -119,7 +119,7 @@ class Database:
                 else:
                     if self.banks_recconection[self.banks[index]] == False:
                         try:
-                            #url = (f"http://{self.banks[index]}:5070/ready_for_connection")
+                            #url = (f"http://{self.banks[index]}:5060/ready_for_connection")
                             url = (f"http://{self.ip_bank}:{self.banks[index]}/ready_for_connection")
                             status_code = requests.get(url, timeout=5).status_code
 
@@ -150,7 +150,7 @@ class Database:
             if index != self.index_actual_bank:
                 if self.banks_recconection[self.banks[index]] == False:
                     try:
-                        # url = (f"http://{self.banks[index]}:5070/ready_for_connection")
+                        # url = (f"http://{self.banks[index]}:5060/ready_for_connection")
                         url = (f"http://{self.ip_bank}:{self.banks[index]}/ready_for_connection")
                         status_code = requests.get(url, timeout=5).status_code
 
@@ -176,7 +176,7 @@ class Database:
         loop = True
         while loop == True:
             try:
-                #url = (f"http://{ip_bank}:5070/ready_for_connection")
+                #url = (f"http://{ip_bank}:5060/ready_for_connection")
                 url = (f"http://{self.ip_bank}:{ip_bank}/ready_for_connection")
                 status_code = requests.get(url, timeout=5).status_code
 

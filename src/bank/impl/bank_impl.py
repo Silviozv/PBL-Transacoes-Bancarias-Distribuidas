@@ -115,7 +115,7 @@ def start_system(database: object):
 
         # if database.find_first_bank() == database.ip_bank:
         if database.find_first_bank() == database.port:
-            # url = (f"http://{database.find_next_bank()}:5070/check_first_pass_token")
+            # url = (f"http://{database.find_next_bank()}:5060/check_first_pass_token")
             url = (f"http://{database.ip_bank}:{database.find_next_bank()}/check_first_pass_token")
             response = requests.get(url).json()
 
@@ -129,7 +129,7 @@ def start_system(database: object):
                 #data_token["Contadora de passagem do token"][database.ip_bank] += 1
                 data_token["Contadora de passagem do token"][database.port] += 1
 
-                # url = (f"http://{database.find_next_bank()}:5070/token_pass")
+                # url = (f"http://{database.find_next_bank()}:5060/token_pass")
                 url = (f"http://{database.ip_bank}:{database.find_next_bank()}/token_pass")
                 response = requests.post(url, json=data_token).json()
 
@@ -146,8 +146,8 @@ def teste(database: object):
     add_packages_token(database, data_token)
     #data_token["Contadora de passagem do token"][database.ip_bank] += 1
     data_token["Contadora de passagem do token"][database.port] += 1
-    # url = (f"http://{database.find_next_bank()}:5070/token_pass")
-    url = (f"http://{database.ip_bank}:5070/token_pass")
+    # url = (f"http://{database.find_next_bank()}:5060/token_pass")
+    url = (f"http://{database.ip_bank}:5060/token_pass")
     response = requests.post(url, json=data_token).json()
     database.token.set_is_passing(True)
     

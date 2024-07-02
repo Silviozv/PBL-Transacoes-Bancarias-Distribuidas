@@ -119,7 +119,7 @@ def token_pass(database: object, data_token: dict):
                 #if next_bank != database.ip_bank:
                 if next_bank != database.port:
 
-                        # url = (f"http://{next_bank()}:5070/token_pass")
+                        # url = (f"http://{next_bank()}:5060/token_pass")
                         url = (f"http://{database.ip_bank}:{next_bank}/token_pass")
                         status_code = requests.post(url, json=data_token, timeout=5).status_code
 
@@ -150,7 +150,7 @@ def send_problem_alert(database: object):
     else:
         # data = {"Lidar com o problema": True, "Emissor do alerta": database.ip_bank}
         data = {"Lidar com o problema": True, "Emissor do alerta": database.port}
-        # url = (f"http://{database.find_first_bank()}:5070/alert_problem_detected")
+        # url = (f"http://{database.find_first_bank()}:5060/alert_problem_detected")
         url = (f"http://{database.ip_bank}:{database.find_first_bank()}/alert_problem_detected")
         response = requests.post(url, json=data).json()
 
@@ -198,7 +198,7 @@ def treat_problem(database: object, alert_sender: str):
             result_dict[j]["Terminado"] = True
             j += 1
         elif database.banks[i] != database.port and database.banks[i] != alert_sender:
-            # url = (f"http://{database.banks[index]}:5070/alert_problem_detected")
+            # url = (f"http://{database.banks[index]}:5060/alert_problem_detected")
             url = (f"http://{database.ip_bank}:{database.banks[i]}/alert_problem_detected")
             data = {"Lidar com o problema": False}
             threading.Thread(target=send_request, args=(database, url, database.banks[i], data, "POST", result_dict, j,)).start()

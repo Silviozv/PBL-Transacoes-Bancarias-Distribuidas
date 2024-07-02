@@ -218,7 +218,7 @@ def process_option(info: dict, utils: dict) -> dict:
 
         elif (info['Opção'] == '2'):
             data = {"CPF usuário": info['CPF usuário']}
-            #url = (f"http://{info['Banco atual']:5060/get/account/consortium")
+            #url = (f"http://{info['Banco atual']}:5060/get/account/consortium")
             url = (f"http://{ip_teste}:{info['Banco atual']}/get/account/consortium")
             response = requests.get(url, json=data)
             status_code = response.status_code
@@ -357,7 +357,7 @@ def process_option(info: dict, utils: dict) -> dict:
 
                 for i in range(quantity):
                     data_ckeck = {"ID conta": data["Chaves remetentes"][i], "CPF usuário": info['CPF usuário']}
-                    #url = (f"http://{data["Bancos remetentes"][i]}:5060/check/account/id")
+                    #url = (f"http://{data['Bancos remetentes'][i]}:5060/check/account/id")
                     url = (f"http://{ip_teste}:{data['Bancos remetentes'][i]}/check/account/id")
                     status_code = requests.get(url, json=data_ckeck).status_code
 
@@ -395,7 +395,7 @@ def process_option(info: dict, utils: dict) -> dict:
         if (info['Opção'] == '1'):
             try:
                 data = {"CPFs": [info['CPF usuário']], "Tipo de conta": ["Física","Pessoal"]}
-                #url = (f"http://{info['Banco atual']:5060/register/account")
+                #url = (f"http://{info['Banco atual']}:5060/register/account")
                 url = (f"http://{ip_teste}:{info['Banco atual']}/register/account")
                 response = requests.post(url, json=data)
                 status_code = response.status_code
@@ -438,7 +438,7 @@ def process_option(info: dict, utils: dict) -> dict:
                 elif info['Opção'] == '3':
                     data = {"CPFs": cpfs, "Tipo de conta": ["Jurídica"]}
 
-                #url = (f"http://{info['Banco atual']:5060/register/account")
+                #url = (f"http://{info['Banco atual']}:5060/register/account")
                 url = (f"http://{ip_teste}:{info['Banco atual']}/register/account")
                 response = requests.post(url, json=data)
                 status_code = response.status_code
@@ -463,7 +463,7 @@ def process_option(info: dict, utils: dict) -> dict:
         
         else:
             info['Informação a ser exibida'] = 'Opção inválida'
-            
+
 
 def clear_terminal():
     if os.name == 'nt':  
