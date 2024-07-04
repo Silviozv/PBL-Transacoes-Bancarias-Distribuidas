@@ -240,6 +240,7 @@ def start():
                 raise ValueError
             list_banks.append(bank)
 
+        print()
         threading.Thread(target=token_impl.count_time_token, args=(database, len(list_banks) * 10,)).start()
         threading.Thread(target=bank_impl.add_consortium, args=(database, list_banks,)).start()
         app.run(port=5060, host='0.0.0.0')
