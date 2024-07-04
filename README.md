@@ -54,14 +54,14 @@ Os requisitos para implementação do sistema são:
 Uma aplicação de acesso do cliente deve poder se comunicar com qualquer banco do consórcio. Aquele que receber a solicitação executará a ação de cadastro ou criação de conta. Todas as comunicações do sistema são feitas seguindo a estrutura API REST, portanto, é utilizado o protocolo HTTP para transferência de dados (Figura 1).
 
 <p align="center">
-  <img src="images/image1.jpeg" width = "600" />
+  <img src="images/image1.jpeg" width = "500" />
 </p>
 <p align="center"><strong> Figura 1 - Comunicação entre aplicação e bancos </strong> </p>
 
 Os bancos devem poder se comunicar entre si para coletar dados referentes a um cliente, transferir dinheiro ou executar pacotes de transferências que tenham sido solicitados. Esses pacotes podem incluir transferências de contas do cliente em diferentes bancos, assim, além de realizar uma transação, o banco também pode fazer uma solicitação de transação para outro banco. A comunicação entre os bancos também é via protocolo HTTP (Figura 2).
 
 <p align="center">
-  <img src="images/image2.jpeg" width = "600" />
+  <img src="images/image2.jpeg" width = "400" />
 </p>
 <p align="center"><strong> Figura 2 - Comunicação entre bancos </strong> </p>
 
@@ -193,7 +193,7 @@ A seguir, serão apresentadas as ações que o usuário pode executar no sistema
 Os dados necessários para o cadastro do usuário no armazenamento do banco são o seu nome e o seu CPF. Não é possível ter mais de um usuário no mesmo banco com o mesmo CPF. A estrutura enviada para essa ação é mostrada na Figura abaixo.
 
 <p align="center">
-  <img src="images/image8.jpeg" width = "300" />
+  <img src="images/image8.jpeg" width = "400" />
 </p>
 <p align="center"><strong> Figura 9 - Exemplo de requisição de cadastro de usuário </strong> </p>
 
@@ -205,7 +205,7 @@ O usuário pode fazer três tipos de conta, sendo elas, física pessoal, física
 Para indicar quais usuários são vinculados à conta, é utilizado o número de CPF de cada um. É necessário apenas esses dados e a indicação do tipo de conta para realizar a criação. A estrutura enviada para essa ação é mostrada na Figura abaixo.
 
 <p align="center">
-  <img src="images/image9.jpeg" width = "300" />
+  <img src="images/image9.jpeg" width = "400" />
 </p>
 <p align="center"><strong> Figura 10 - Exemplo de requisição de criação de conta conjunta </strong> </p>
 
@@ -303,7 +303,7 @@ O sistema não vai funcionar corretamente se o usuário não indicar manualmente
 Após essa inserção, o servidor do banco é iniciado (Figura 18).
 
 <p align="center">
-  <img src="images/image25.jpeg" width = "600" />
+  <img src="images/image25.jpeg" width = "400" />
 </p>
 <p align="center"><strong> Figura 18 - Servidor do banco iniciado </strong> </p>
 
@@ -387,7 +387,7 @@ Na opção de requisitar um pacote de transferências, é pedida a quantidade de
 Caso a execução do pacote seja falha, a mensagem de retorno indica qual ou quais transferências não foram bem sucedidas, juntamente com os motivos (Figura 27).
 
 <p align="center">
-  <img src="images/image24.jpeg" width = "400" />
+  <img src="images/image24.jpeg" width = "500" />
 </p>
 <p align="center"><strong> Figura 27 - Exemplo de retorno da execução de um pacote mal sucedido </strong> </p>
 
@@ -407,14 +407,14 @@ Utilizando a aplicação, o cliente pode se cadastrar e criar as contas desejada
 O algoritmo vai interferir quando o cliente requisitar uma movimentação financeira para um banco. Quando o pacote é recebido, o banco entra em um **loop de espera** que atrasa a resposta para o usuário afirmando se o pacote foi bem executado ou não (Figura 28). Esse *loop* só é encerrado quando o pacote é executado.
 
 <p align="center">
-  <img src="images/image28.jpeg" width = "400" />
+  <img src="images/image28.jpeg" width = "500" />
 </p>
 <p align="center"><strong> Figura 28 - Recebimento do pacote e início do loop de espera </strong> </p>
 
 Quando o *token* chega ao banco que possui um pacote a ser executado, ele adiciona os dados desse pacote, juntamente com o IP do banco de origem, na fila de pacotes do *token* e passa adiante (Figura 29).
 
 <p align="center">
-  <img src="images/image29.jpeg" width = "400" />
+  <img src="images/image29.jpeg" width = "500" />
 </p>
 <p align="center"><strong> Figura 29 - Banco adiciona pacote na fila de execução </strong> </p>
 
@@ -425,14 +425,14 @@ O banco responsável por executar o pacote vai ser aquele que o *token* passa pe
 Digamos que, no exemplo dado nas Figura acima, o banco responsável pela execução dos pacotes é o **B1**. Ele vai receber o *token*, verificar que ele é o responsável pela execução e começará o processamento dos pacotes (Figura 30). 
 
 <p align="center">
-  <img src="images/image30.jpeg" width = "600" />
+  <img src="images/image30.jpeg" width = "500" />
 </p>
 <p align="center"><strong> Figura 30 - Banco executa pacotes da fila </strong> </p>
 
 O pacote será executado e ele pode ter sido bem sucedido ou não. Ao fim da execução desse pacote, o **B1** retorna para o **B3** o resultado da execução. Ao finalizar todos os pacotes, o **B1** limpa a fila de pacotes e repassa o *token*. Como o **B3** recebeu a resposta do pacote, ele sai do **loop de espera** e retorna o resultado para a aplicação que solicitou o pacote. Esse processo é mostrado na Figura abaixo.
 
 <p align="center">
-  <img src="images/image31.jpeg" width = "600" />
+  <img src="images/image31.jpeg" width = "500" />
 </p>
 <p align="center"><strong> Figura 31 - Banco retorna resultado do pacote para a aplicação e token é repassado </strong> </p>
 
