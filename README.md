@@ -553,7 +553,10 @@ Em conclusão, todos os requisitos propostos no projeto foram implementados com 
 
 <p align="justify"> 
 
+FCamara (2023). "Pix: o que é e quais são os benefícios?". Disponível em: https://fcamara.com/blog/o-que-e-pix/. Acesso em: 02 de julho de 2024.
 
+NASCIMENTO, A. "SISTEMAS DISTRIBUÍDOS
+CAPÍTULO 6 – SINCRONIZAÇÃO". Disponível em: http://profs.ic.uff.br/~simone/sd/contaulas/aula14.pdf. Acesso em: 02 de julho de 2024.
 
 </p>
 </div>
