@@ -29,7 +29,7 @@ def send_request(database: object, url: str, ip_bank: str, data: dict, http_meth
     Esboço para envio de uma requisição HTTP. Quando o envio é terminado é indicado na estrutura 
     para processos em outros planos terem acesso ao término e ao retorno da requisição.
 
-    :param database: Representação do armazenamento do banco.
+    :param database: Armazenamento do banco.
     :type database: object
     :param url: URL da requisição.
     :type url: str
