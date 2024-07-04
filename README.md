@@ -19,7 +19,7 @@ Os requisitos para implementação do sistema são:
 * Deve ser criada uma aplicação para executar as ações disponíveis para o usuário.
 
 
-***Desenvolvedor:*** Silvio Azevedo de Oliveira
+> ***Desenvolvedor:*** Silvio Azevedo de Oliveira
 
 
 </p>
