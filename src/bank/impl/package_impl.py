@@ -120,8 +120,15 @@ def confirm_package_execution(database: object, data_confirm: dict):
 def request_package(database: object, data_package: dict):
     id = database.add_package(data_package)
 
-    while database.packages[id]["Terminado"] == False:
-        pass
+    loop = True
+    while loop == True:
+        if database.packages[id]["Terminado"] == True:
+            loop = False
+        elif database.count_banks_on() == 0:
+            data_token = {}
+            data_token["Pacotes"] = [{"ID": id, "Dados": database.packages[id]["Dados"], "Origem": database.ip_bank}]
+            process_packages(database, data_token)
+            loop = False
 
     response = database.packages[id]
     return response
