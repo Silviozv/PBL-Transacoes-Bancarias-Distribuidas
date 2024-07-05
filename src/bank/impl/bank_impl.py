@@ -114,11 +114,10 @@ def start_system(database: object):
 
             if response["Token está no sistema"] == False:
 
-                data_token = database.token.create_token(database.ip_bank, database.banks)
-                database.token.set_id(data_token["ID token"])
+                data_token = database.token.create_token(database.banks)
                 add_packages_token(database, data_token)
 
-                data_token["Contadora de passagem do token"][database.ip_bank] += 1
+                data_token["Contadora de execução de pacote"][database.ip_bank] += 1
 
                 url = (f"http://{database.find_next_bank()}:5060/token_pass")
                 response = requests.post(url, json=data_token).json()
@@ -130,10 +129,9 @@ def start_system(database: object):
 
 def teste(database: object):
     database.ready_for_connection = True
-    data_token = database.token.create_token(database.ip_bank, database.banks)
-    database.token.set_id(data_token["ID token"])
+    data_token = database.token.create_token(database.banks)
     add_packages_token(database, data_token)
-    data_token["Contadora de passagem do token"][database.ip_bank] += 1
+    data_token["Contadora de execução de pacote"][database.ip_bank] += 1
     url = (f"http://{database.find_next_bank()}:5060/token_pass")
     response = requests.post(url, json=data_token).json()
     database.token.set_is_passing(True)

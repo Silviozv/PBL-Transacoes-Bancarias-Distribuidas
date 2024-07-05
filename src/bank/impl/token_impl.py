@@ -20,7 +20,7 @@ def check_first_pass_token(database: object) -> dict:
     :rtype: dict
     """
 
-    response = {"Token está no sistema": database.token.is_passing, "ID token": database.token.current_id}
+    response = {"Token está no sistema": database.token.is_passing}
     return response
 
 
@@ -74,7 +74,9 @@ def count_time_token(database: object, count_limit: int):
 
                 if quantity_disconnected == quantity:
 
+                    count_pass = database.token.count_pass
                     database.token.reset_all_atributes()
+                    database.token.set_count_pass(count_pass)
                     threading.Thread(target=start_system, args=(database,)).start()
 
                 elif token_in_the_system == False:
@@ -94,8 +96,8 @@ def multicast_check_it_has(database: object, result_dict: dict, quantity: int):
     :type database: object
     :param result_dict: Estrutura para indicar o término das requisições e os dados retornados.
     :type result_dict: int
-    :param result_dict: Quantidade de requisições enviadas.
-    :type result_dict: dict
+    :param quantity: Quantidade de requisições enviadas.
+    :type quantity: dict
     """
 
     for i in range(quantity):
@@ -157,22 +159,27 @@ def check_token_validity(database: object, data_token: dict):
     :type data_token: dict
     """
 
-    if database.token.current_id != None and database.token.current_id != data_token["ID token"]:
+    if database.token.count_pass != data_token["Contadora de passagem do token"][database.ip_bank]:
         if database.token_problem_alert == False:
             send_problem_alert(database)
     
     else:
-        if database.token.current_id is None:
-            database.token.set_id(data_token["ID token"])
 
         database.token.set_it_has(True)
         database.token.set_time(0)
 
-        if data_token["Contadora de passagem do token"][database.ip_bank] == 1:
+        if data_token["Contadora de execução de pacote"][database.ip_bank] == 1:
             process_packages(database, data_token) 
-            database.token.clear_token_pass_counter(data_token["Contadora de passagem do token"])
+            database.token.clear_token_execution_counter(data_token["Contadora de execução de pacote"])
         
-        data_token["Contadora de passagem do token"][database.ip_bank] += 1
+        if data_token["Contadora de passagem do token"][database.ip_bank] > 100:
+            data_token["Contadora de passagem do token"][database.ip_bank] = 0
+            database.token.set_count_pass(0)
+        else:
+            data_token["Contadora de passagem do token"][database.ip_bank] += 1
+            database.token.set_count_pass(database.token.count_pass + 1)
+
+        data_token["Contadora de execução de pacote"][database.ip_bank] += 1
         add_packages_token(database, data_token)
         token_pass(database, data_token) 
 
@@ -203,7 +210,9 @@ def token_pass(database: object, data_token: dict):
                             database.token.set_time(0)
 
                 else:
+                    count_pass = database.token.count_pass
                     database.token.reset_all_atributes()
+                    database.token.set_count_pass(count_pass)
                     start_system(database)
                 
                 loop = False

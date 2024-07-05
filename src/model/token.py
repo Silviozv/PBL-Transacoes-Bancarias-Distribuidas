@@ -25,8 +25,7 @@ class Token:
         self.is_passing = False
         self.it_has = False
         self.time = 0
-        self.current_id = None
-
+        self.count_pass = 0
         self.lock = threading.Lock()
 
 
@@ -66,7 +65,7 @@ class Token:
             self.time = time
 
 
-    def set_id(self, id: str):
+    def set_count_pass(self, new_count: int):
         """
         Seta o ID do token.
 
@@ -75,7 +74,7 @@ class Token:
         """
 
         with self.lock:
-            self.current_id = id
+            self.count_pass = new_count
 
 
     def reset_all_atributes(self):
@@ -87,10 +86,10 @@ class Token:
             self.is_passing = False
             self.it_has = False
             self.time = 0
-            self.current_id = None
+            self.count_pass = 0
 
 
-    def create_token(self, ip_bank: str, banks: list) -> dict:
+    def create_token(self, banks: list) -> dict:
         """
         Criação do token. A informações do token são: seu ID, que é calculado pela junção 
         do IP do banco, o horário e a data; a contadora de passagem do token entre os 
@@ -104,20 +103,18 @@ class Token:
         :rtype: dict
         """
 
-
-        date_time = datetime.now()
-        id = (f"{ip_bank}{date_time.time()}{date_time.date()}")
-
         token_pass_counter = {}
+        token_execution_counter = {}
         for i in range(len(banks)):
             token_pass_counter[banks[i]] = 0
+            token_execution_counter[banks[i]] = 0
 
-        data_token = {"ID token": id, "Contadora de passagem do token": token_pass_counter, "Pacotes": []}
+        data_token = {"Contadora de passagem do token": token_pass_counter, "Contadora de execução de pacote": token_execution_counter, "Pacotes": []}
 
         return data_token
 
 
-    def clear_token_pass_counter(self, token_pass_counter: dict):
+    def clear_token_execution_counter(self, token_execution_counter: dict):
         """
         Limpa a estrutura que conta a quantidade de vezes que o token passou 
         pelos bancos.
@@ -126,5 +123,5 @@ class Token:
         :type token_pass_counter: dict
         """
 
-        for key in token_pass_counter.keys():
-            token_pass_counter[key] = 0
+        for key in token_execution_counter.keys():
+            token_execution_counter[key] = 0
