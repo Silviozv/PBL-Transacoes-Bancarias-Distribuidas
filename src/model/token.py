@@ -12,14 +12,14 @@ class Token:
     is_passing: bool
     it_has: bool
     time: int
-    current_id: str
+    count_pass: int
     lock: object
 
     def __init__(self):
         """
         Inicialização dos atributos base de representação do token. Incluindo a indicação 
         se ele está passando no sistema, se o banco está com ele, o tempo que o banco ficou 
-        sem recebê-lo e o seu ID atual.
+        sem recebê-lo e a sua contadora de passagem atual.
         """
 
         self.is_passing = False
@@ -43,9 +43,9 @@ class Token:
 
     def set_is_passing(self, is_passing: bool):
         """
-        Seta a informação de passagem do token pelo sistema.
+        Seta a informação que indica se o token está passando pelo sistema ou não.
 
-        :param is_passing: Indicação se o token está passando no sistema.
+        :param is_passing: Indicação se o token está passando pelo sistema ou não.
         :type is_passing: bool
         """
 
@@ -55,9 +55,9 @@ class Token:
 
     def set_time(self, time: int):
         """
-        Seta o tempo sem receber o token.
+        Seta o tempo que o banco ficou sem receber o token.
 
-        :param time: Indicação do tempo sem receber o token.
+        :param time: Indicação do tempo que o banco ficou sem receber o token.
         :type time: int
         """
 
@@ -67,10 +67,10 @@ class Token:
 
     def set_count_pass(self, new_count: int):
         """
-        Seta o ID do token.
+        Seta a contadora de passagem do token.
 
-        :param id: Novo ID do token.
-        :type id: str
+        :param new_count: Novo valor da contadora de passagem.
+        :type new_count: int
         """
 
         with self.lock:
@@ -91,12 +91,10 @@ class Token:
 
     def create_token(self, banks: list) -> dict:
         """
-        Criação do token. A informações do token são: seu ID, que é calculado pela junção 
-        do IP do banco, o horário e a data; a contadora de passagem do token entre os 
-        bancos; e a lista vazia com os pacotes.
+        Criação do token. As informações do token são: a contadora de passagem do token entre os bancos, 
+        usada para detectar duplicação do token; a contadora de execução do token, usada para indicar 
+        qual banco deve executar os pacotes; e a lista vazia com os pacotes.
 
-        :param ip_bank: IP do banco atual.
-        :type ip_bank: str
         :param banks: Lista dos IPs dos bancos do consórcio.
         :type banks: list
         :return: Estrutura contendo os dados do token.
@@ -116,11 +114,11 @@ class Token:
 
     def clear_token_execution_counter(self, token_execution_counter: dict):
         """
-        Limpa a estrutura que conta a quantidade de vezes que o token passou 
-        pelos bancos.
+        Limpa a estrutura contadora de execução do token, usada para indicar qual banco deve executar 
+        os pacotes.
 
-        :param token_pass_counter: Estrutura contadora de passagem.
-        :type token_pass_counter: dict
+        :param token_execution_counter: Estrutura contadora de execução do token.
+        :type token_execution_counter: dict
         """
 
         for key in token_execution_counter.keys():

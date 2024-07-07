@@ -12,27 +12,29 @@ class Account:
     type_account: list
     cpfs: list
     balance: float
+    blocked_balance: float
     lock: object
 
     def __init__(self, data_account: dict):
         """
         Inicialização dos atributos base de representação da conta. Incluindo a sua chave, 
-        indicação do tipo de conta, CPFs dos usuários vinculados, saldo e o saldo bloqueado.
+        indicação do tipo de conta, CPFs dos usuários vinculados, saldo disponível ao 
+        usuário e o saldo bloqueado.
         """
 
         self.key = data_account["Chave"]  
         self.type_account = data_account["Tipo de conta"] 
         self.cpfs = data_account["CPFs"]  
 
-        self.balance = 0
-        self.blocked_balance = 0
+        self.balance = 0.0
+        self.blocked_balance = 0.0
 
         self.lock = threading.Lock()
 
 
     def deposit_balance(self, value: str) -> dict:
         """
-        Depositar valor no saldo da conta.
+        Depositar valor no saldo da conta disponível ao usuário.
 
         :param value: Valor a ser depositado.
         :type value: str
@@ -49,7 +51,7 @@ class Account:
 
     def withdraw_balance(self, value: str) -> dict:
         """
-        Sacar valor do saldo da conta.
+        Sacar valor do saldo da conta disponível ao usuário.
 
         :param value: Valor a ser sacado.
         :type value: str

@@ -12,7 +12,7 @@ class User:
     def __init__(self, data_user):
         """
         Inicialização dos atributos base de representação do usuário. Incluindo seu CPF, 
-        nome e a indicação se ele tem conta física ou não.
+        nome e a indicação se ele tem conta física pessoal ou não.
         """
 
         self.cpf = data_user["CPF"]
@@ -22,7 +22,7 @@ class User:
 
     def set_have_physical_account(self, have_physical_account: bool):
         """
-        Seta o atributo que indica se o usuário tem conta física ou não.
+        Seta o atributo que indica se o usuário tem conta física pessoal ou não.
 
         :param have_physical_account: Indicação se o usuário tem conta física pessoal ou não.
         :type have_physical_account: bool

@@ -247,8 +247,8 @@ class Database:
     def find_first_bank(self) -> str:
         """
         Encontra o IP do primeiro banco online na ordem da lista de armazenamento. 
-        É checado se o banco está disponível para conexão, se não estver, 
-        é tentado o próximo.
+        É checado se o banco está disponível para conexão, se não estver, é testada 
+        a conexão com o próximo.
 
         :return: IP do primeiro banco online.
         :rtype: str
@@ -286,7 +286,7 @@ class Database:
     def loop_reconnection(self, ip_bank: str):
         """
         Loop de checagem de conexão com um banco. É enviada a mensagem de checagem 
-        de conexão, caso não seja feita conexão, é tentado de novo. Se a conexão 
+        de conexão, caso a conexão não seja possível, é tentado de novo. Se a conexão 
         tiver êxito, o loop é terminado.
 
         :param ip_bank: IP do banco para tentar reconexão.
