@@ -12,11 +12,11 @@ from utils.outline_requests import create_result_structure, send_request
 
 def check_first_pass_token(database: object) -> dict:
     """
-    Retorna se o token está passando no sistema e qual seu ID.
+    Retorna se o token está passando no sistema ou não.
 
     :param database: Armazenamento do banco.
     :type database: object
-    :return: Informação se o token está no sistema e o seu ID.
+    :return: Informação se o token está no sistema ou não.
     :rtype: dict
     """
 
@@ -26,11 +26,11 @@ def check_first_pass_token(database: object) -> dict:
 
 def check_it_has_token(database: object) -> dict:
     """
-    Retorna se o banco atual possui o token.
+    Retorna se o banco possui o token.
 
     :param database: Armazenamento do banco.
     :type database: object
-    :return: Informação se o banco atual possui o token.
+    :return: Informação se o banco possui o token.
     :rtype: dict
     """
 
@@ -41,9 +41,10 @@ def check_it_has_token(database: object) -> dict:
 def count_time_token(database: object, count_limit: int):
     """
     Loop de contagem do tempo que o banco ficou sem receber o token. Se ultrapassar o tempo 
-    limite. São enviadas requisições para todos os bancos verificando se o token está 
-    com algum deles. Se estiver, a contagem é resetada, caso não esteja, é chamada a 
-    função para casos de detecção de falhas no token.
+    limite, são enviadas requisições para todos os bancos verificando se o token está com 
+    algum deles. Se estiver, a contagem é resetada, caso não esteja, é chamada a função para 
+    casos de detecção de falhas no token. Se nenhum banco estiver disponível para receber 
+    mensagens, o banco entra no estado inicial do sistema (função: start_system). 
 
     :param database: Armazenamento do banco.
     :type database: object
@@ -53,6 +54,7 @@ def count_time_token(database: object, count_limit: int):
 
     database.token.set_time(0)
     quantity = int(count_limit/10)
+
     while True:
         if database.token.is_passing == True and database.processing_package == False:
             database.token.set_time(database.token.time + 1)
@@ -73,7 +75,6 @@ def count_time_token(database: object, count_limit: int):
                         quantity_disconnected += 1
 
                 if quantity_disconnected == quantity:
-
                     count_pass = database.token.count_pass
                     database.token.reset_all_atributes()
                     database.token.set_count_pass(count_pass)
@@ -90,7 +91,8 @@ def count_time_token(database: object, count_limit: int):
 def multicast_check_it_has(database: object, result_dict: dict, quantity: int):
     """
     Envia para todos os bancos verificando se algum deles possui o token. A estrutura 
-    de resultados indica a finalização das requisições e os resultados de retorno.
+    de resultados (result_dict) armazena a indicação da finalização das requisições e 
+    os resultados de retorno.
 
     :param database: Armazenamento do banco.
     :type database: object
@@ -124,7 +126,7 @@ def multicast_check_it_has(database: object, result_dict: dict, quantity: int):
 
 def receive_token(database: object, data_token: dict) -> dict:
     """
-    Recebimento do token. Após o recebimento, é chamada em uma thread a função de 
+    Recebimento do token. Após o recebimento, é chamada, em uma thread, a função de 
     validação do token.
 
     :param database: Armazenamento do banco.
@@ -146,12 +148,14 @@ def receive_token(database: object, data_token: dict) -> dict:
 
 def check_token_validity(database: object, data_token: dict):
     """
-    Checa validade do token. É verificado se o ID do token é o mesmo armazenado, 
-    se não for, é chamada a função para lidar com falhas no token. Caso o ID 
-    bata, é verificado se o banco atual deve executar os pacotes armazenados no 
-    token através da estrutura contadora de passagem do token. Se for, ele executa, 
-    se não, somente insere seus pacotes no token e o passa adianta. A flags relacionadas 
-    ao token são setadas nesses processos.
+    Checa validade do token. É verificado se o valor de passagem do token atual 
+    é igual ao que está armazenado no token, se não for, é chamada a função para 
+    casos de detecção de falha no token (função: send_problem_alert). Caso o valor 
+    de passagem seja igual, é verificado se o banco atual deve executar os pacotes
+    armazenados no token através da estrutura contadora de execução do token. Se ele 
+    for o responsável pela execução, ele executa os pacotes armazenados no token (função: 
+    process_packages), se não, somente insere seus pacotes no token e o passa adianta. 
+    As flags relacionadas ao token são setadas nesses processos.
 
     :param database: Armazenamento do banco.
     :type database: object
@@ -187,7 +191,7 @@ def check_token_validity(database: object, data_token: dict):
 def token_pass(database: object, data_token: dict):
     """
     Função de passagem do token. É passado o token para o próximo banco que estiver 
-    online. Se nenhum estiver online, o banco volta ao estado inicial.
+    online. Se nenhum estiver online, o banco volta ao estado inicial (função: start_system).
 
     :param database: Armazenamento do banco.
     :type database: object
@@ -199,9 +203,9 @@ def token_pass(database: object, data_token: dict):
     while loop == True:
         if database.token_problem_alert == False:
             next_bank = database.find_next_bank()
+            
             try:
                 if next_bank != database.ip_bank:
-
                         url = (f"http://{next_bank}:5060/token_pass")
                         status_code = requests.post(url, json=data_token, timeout=5).status_code
 
@@ -229,38 +233,53 @@ def token_pass(database: object, data_token: dict):
 def send_problem_alert(database: object):
     """
     Envia para o banco que tem maior prioridade o alerta de detecção de falha no token. 
-    Depois o banco entra no estado de bloqueio temporário. Se ele for o banco de maior 
-    prioridade, ele mesmo trata da falha no sistema.
+    Depois o banco seta as flags de indicação de falha e entra no estado de bloqueio 
+    temporário (função: reset_problem_alert). Se ele for o banco de maior 
+    prioridade, ele mesmo trata a falha no sistema (função: treat_problem).
 
     :param database: Armazenamento do banco.
     :type database: object
     """
 
-    if database.find_first_bank() == database.ip_bank:
-        threading.Thread(target=treat_problem, args=(database, "",)).start()
+    loop = True
+    while loop == True:
+        first_bank = database.find_first_bank()
 
-    else:
-        data = {"Lidar com o problema": True, "Emissor do alerta": database.ip_bank}
-        url = (f"http://{database.find_first_bank()}:5060/alert_problem_detected")
-        response = requests.post(url, json=data).json()
+        if first_bank == database.ip_bank:
+            threading.Thread(target=treat_problem, args=(database, "",)).start()
+            loop = False
 
-        if response["Bem sucedido"] == True:
-            database.set_token_problem_alert(True)
-            database.token.reset_all_atributes()
-            threading.Thread(target=reset_duplication_alert, args=(database,)).start()
+        else:
+            try:
+                data = {"Lidar com o problema": True, "Emissor do alerta": database.ip_bank}
+                url = (f"http://{first_bank}:5060/alert_problem_detected")
+                response = requests.post(url, json=data, timeout=5).json()
+
+                if response["Bem sucedido"] == True:
+                    database.set_token_problem_alert(True)
+                    database.token.reset_all_atributes()
+                    threading.Thread(target=reset_problem_alert, args=(database,)).start()
+
+                loop = False
+            
+            except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout) as e:
+                with database.lock:
+                    database.banks_recconection[first_bank] = True
+                threading.Thread(target=database.loop_reconnection, args=(first_bank,)).start()
 
 
 def receive_problem_alert(database: object, data_alert: dict) -> dict:
     """
     Recebimento de aviso de problema no sistema do token. É verificado se o aviso é 
     para o banco atual lidar com o problema ou o aviso já é de alguém que está lidando. 
-    Se for para ele lidar, ele começa o processo, se não, ele entra em estado de bloqueio 
-    para esperar regularizar o sistema.
+    Se for para ele lidar, ele começa o processo (função: treat_problem), se não, ele 
+    seta as flags de indicação de falha e entra em estado de bloqueio (função: 
+    reset_problem_alert) para esperar regularizar o sistema.
 
     :param database: Armazenamento do banco.
     :type database: object
-    :param alert_sender: Banco a ser ignorado no envio do alerta.
-    :type alert_sender: str
+    :param data_alert: Dados relacionados ao alerta de problema.
+    :type data_alert: dict
     :return: Resposta ao aviso.
     :rtype: dict
     """
@@ -280,7 +299,7 @@ def receive_problem_alert(database: object, data_alert: dict) -> dict:
 
         database.set_token_problem_alert(True)
         database.token.reset_all_atributes()
-        threading.Thread(target=reset_duplication_alert, args=(database,)).start()
+        threading.Thread(target=reset_problem_alert, args=(database,)).start()
 
         response = {"Bem sucedido": True}
         return response
@@ -288,9 +307,11 @@ def receive_problem_alert(database: object, data_alert: dict) -> dict:
 
 def treat_problem(database: object, alert_sender: str):
     """
-    Trata de falha no sistema do token. Envia para todos os bancos um alerta de 
-    problema no sistema. Depois de todos receberem o aviso, o banco atual espera
-    um intervalo de tempo e depois volta ao estado inicial do sistema.
+    Trata de falha no sistema do token. Primeiramente, seta as flags de indicação 
+    de falha no sistema. Depois, envia para todos os bancos um alerta de 
+    problema no sistema. Depois de todos receberem o aviso, o banco atual espera 
+    um intervalo de tempo em estado de bloqueio (função: reset_problem_alert) para 
+    esperar a regularização do sistema.
 
     :param database: Armazenamento do banco.
     :type database: object
@@ -326,17 +347,13 @@ def treat_problem(database: object, alert_sender: str):
                 if result_dict[key]["Terminado"] == False:
                     loop = True
 
-    time.sleep(7)
-
-    database.set_token_problem_alert(False)
-
-    start_system(database)
+    reset_problem_alert(database)
 
 
-def reset_duplication_alert(database: object):
+def reset_problem_alert(database: object):
     """
     Espera um intervalo de tempo em estado de bloqueio para esperar o sistema se 
-    regularizar de uma falha, depois ele volta ao estado inicial.
+    regularizar de uma falha, depois ele volta ao estado inicial (função: start_system).
 
     :param database: Armazenamento do banco.
     :type database: object
