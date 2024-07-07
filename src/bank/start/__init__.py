@@ -1,3 +1,7 @@
+"""
+Módulo de adição dos caminhos necessários para acessar outros módulos no projeto.
+"""
+
 import os
 import sys
 
