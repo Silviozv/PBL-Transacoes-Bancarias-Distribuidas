@@ -1,6 +1,10 @@
 <h1 align="center"> Consórcio de Bancos Distribuídos </h1>
 <h3 align="center"> Sistema descentralizado de comunicação e gerenciamento de bancos. </h3>  
 
+<p align="center">
+  <img src="images/line.jpg" width = "1000" />
+</p></p>
+
 <div id="sobre-o-projeto"> 
 <h2> Sobre o Projeto</h2>
 
@@ -20,7 +24,6 @@ Os requisitos para implementação do sistema são:
 
 
 > ***Desenvolvedor:*** Silvio Azevedo de Oliveira
-
 
 </p>
 </div>
@@ -46,6 +49,9 @@ Os requisitos para implementação do sistema são:
 	</ul>	
 </div>
 
+<p align="center">
+  <img src="images/line.jpg" width = "1000" />
+</p></p>
 
 <div id="comunicacaoPerifericos"> <h2> Comunicação entre os Periféricos </h2>
 
@@ -68,7 +74,9 @@ Os bancos devem poder se comunicar entre si para coletar dados referentes a um c
 </p>
 </div>
 
-
+<p align="center">
+  <img src="images/line.jpg" width = "1000" />
+</p></p>
 
 <div id="algoritmoTratamentoConcorrencia"> <h2> Algoritmo de Tratamento de Concorrência </h2>
 
@@ -178,7 +186,9 @@ Se algum pacote tivesse sido enviado para execução, mas não foi executado ant
 </p>
 </div>
 
-
+<p align="center">
+  <img src="images/line.jpg" width = "1000" />
+</p></p>
 
 <div id="requisicoesUsuario"> <h2> Requisições do Usuário </h2>
 
@@ -253,7 +263,9 @@ Inversamente, no caso do depósito, somente as partes do destinatário e do valo
 </p>
 </div>
 
-
+<p align="center">
+  <img src="images/line.jpg" width = "1000" />
+</p></p>
 
 <div id="execucaoPacotes"> <h2> Execução de Pacotes </h2>
 
@@ -284,6 +296,9 @@ Quando o pacote é finalizado, é retornado para o banco que requisitou ele se a
 </p>
 </div>
 
+<p align="center">
+  <img src="images/line.jpg" width = "1000" />
+</p></p>
 
 <div id="inicializacaoBancos"> <h2> Inicialização dos Bancos </h2>
 
@@ -308,6 +323,9 @@ Após essa inserção, o servidor do banco é iniciado (Figura 18).
 </p>
 </div>
 
+<p align="center">
+  <img src="images/line.jpg" width = "1000" />
+</p></p>
 
 <div id="perdaConexaoBancos"> <h2> Perda de Conexão entre Bancos </h2>
 
@@ -320,7 +338,9 @@ Em razão dessa checagem, quando o banco estiver disponível novamente, os que p
 </p>
 </div>
 
-
+<p align="center">
+  <img src="images/line.jpg" width = "1000" />
+</p></p>
 
 <div id="aplicacaoGerenciamento"> <h2> Aplicação de Gerenciamento </h2>
 
@@ -392,7 +412,9 @@ Caso a execução do pacote seja falha, a mensagem de retorno indica qual ou qua
 </p>
 </div>
 
-
+<p align="center">
+  <img src="images/line.jpg" width = "1000" />
+</p></p>
 
 <div id="logicaGeralSistema"> <h2> Lógica Geral do Sistema </h2>
 
@@ -441,9 +463,9 @@ Esse é o processo de execução das movimentações financeiras de forma ordena
 </p>
 </div>
 
-
-
-
+<p align="center">
+  <img src="images/line.jpg" width = "1000" />
+</p></p>
 
 <div id="organizacaoProjeto"> <h2> Organização do Projeto </h2>
 
@@ -482,8 +504,9 @@ Os arquivos <code>src/application/\__main__.py</code> e <code>src/bank/start/\__
 </p>
 </div>
 
-
-
+<p align="center">
+  <img src="images/line.jpg" width = "1000" />
+</p></p>
 
 <div id="execucaoSistema"> <h2> Execução do Sistema </h2>
 
@@ -530,6 +553,9 @@ Para executar as imagens do servidor do banco e da aplicação, respectivamente,
 </p>
 </div>
 
+<p align="center">
+  <img src="images/line.jpg" width = "1000" />
+</p></p>
 
 <div id="conclusao"> <h2> Conclusão </h2>
 
@@ -545,6 +571,10 @@ Em conclusão, todos os requisitos propostos no projeto foram implementados com 
 
 </p>
 </div>
+
+<p align="center">
+  <img src="images/line.jpg" width = "1000" />
+</p></p>
 
 
 <div id="referencias"> <h2> Referências </h2>
