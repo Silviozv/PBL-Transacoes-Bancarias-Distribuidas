@@ -144,11 +144,9 @@ Caso o tempo ultrapasse o limite, significa que o *token* pode ter se perdido. P
 
 * **Detecção de duplicação:**
 
-Quando um *token* é criado, é setado em sua estrutura um **ID** que se mantém. Esse ID é a junção do número de IP do banco que o criou, o horário de criação e a data, como, o exemplo abaixo:
+Quando um *token* é criado, é inserido em seu armazenamento uma estrutura contendo a quantidade de vezes que ele passou por cada banco do consórcio. Cada banco armazena sua própria contadora que é sincronizada com a do *token*.
 
-> 172.24.16.101:16:55.2875762024-07-03
-
-Quando o *token* passa pela primeira vez em um banco, esse ID é armazenado e toda vez que o *token* chega, é feita a comparação para saber se o ID é o mesmo. Caso não seja, significa que mais de um *token* está passando pelo sistema, assim, o algoritmo de tratamento de falhas é executado.
+Quando o *token* chega em um banco, esse valor da contadora é comparado ao que está armazenado no *token*. Se não for equivalente, significa que esse *token* não é o que foi recebido anteriormente, representando um caso de falha no sistema. Assim, o algoritmo de tratamento de falhas é executado.
 
 * **Tratamento de falhas:**
 
@@ -461,7 +459,7 @@ Na pasta  <code>src/model</code> ficam as classes utilizadas no projeto, sendo e
 
 * <code>User</code>: Dados relacionados ao usuário, como, o CPF, o nome e a informações se ele já possui conta física pessoal;
 
-* <code>Token</code>: Informações relacionadas a passagem do *token*, como, se o banco possui ele naquele momento, se ele está ou não passando no sistema, o tempo que o banco ficou sem receber, e o ID atualmente cadastrado do *token*.
+* <code>Token</code>: Informações relacionadas a passagem do *token*, como, se o banco possui ele naquele momento, se ele está ou não passando no sistema, o tempo que o banco ficou sem receber, e a contadora de passagem do *token*.
 
 A pasta <code>src/bank/impl</code> possui os arquivos que contém as funções de implementação do banco. A seguir a descrição de cada uma delas:
 
