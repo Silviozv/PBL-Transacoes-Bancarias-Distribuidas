@@ -198,14 +198,12 @@ def request_package(database: object, data_package: dict):
 
 def reset_packages(database: object):
     """
-    FALTOOOOOOOOOOOOUUUUUUUUUUUUUUU
+    Verifica os pacotes que foram inseridos no token e ainda não foram executados. 
+    Modifica eles indicando que não foram inseridos no token para serem colocados na fila 
+    do armazenamento dele novamente.
 
     :param database: Armazenamento do banco.
     :type database: object
-    :param data_package: Dados de um pacote.
-    :type data_package: dict
-    :return: Retorna o resultado da requisição.
-    :rtype: dict
     """
 
     for key in database.packages.keys():
