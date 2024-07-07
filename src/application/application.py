@@ -83,17 +83,18 @@ def show_screen( info: dict):
 
     if ( info['Informação a ser exibida'] != ''):
 
-        print("|" + " " * 77 + "|")
-
         if ( type(info['Informação a ser exibida']) == str):
+            print("|" + " " * 77 + "|")
             text = info['Informação a ser exibida']
             space_before = (77 - len(text)) // 2
             space_after = 77 - (len(text) + space_before)
             print("|" + " " * space_before + text + " " * space_after + "|")
 
             print("|" + " " * 77 + "|")
+            print("+-----------------------------------------------------------------------------+")
 
         elif ( type(info['Informação a ser exibida']) == list):
+            print("|" + " " * 77 + "|")
             for i in range(len(info['Informação a ser exibida'])):
                 text = f"{i+1}: {info['Informação a ser exibida'][i]}"
                 space_before = 1
@@ -101,12 +102,14 @@ def show_screen( info: dict):
                 print("|" + " " * space_before + text + " " * space_after + "|")
 
             print("|" + " " * 77 + "|")
+            print("+-----------------------------------------------------------------------------+")
 
         elif ( type(info['Informação a ser exibida']) == dict):
             if info['Tipo de informação a ser exibida'] == 'Contas do usuário':
 
                 for key in info['Informação a ser exibida'].keys():
-
+                        
+                    print("|" + " " * 77 + "|")
                     text = f"- IP do banco: {key}"
                     space_after = 77 - (len(text) + 4)
                     print("|    " + text + " " * space_after + "|")
@@ -138,10 +141,14 @@ def show_screen( info: dict):
 
                         print("|" + " " * 77 + "|")
 
+                    print("+-----------------------------------------------------------------------------+")
+
             elif info['Tipo de informação a ser exibida'] == 'Justificativas de falha dos pacotes':
+                print("|" + " " * 77 + "|")
                 text = "Falha ao executar o pacote"
                 space_after = 77 - (len(text) + 4)
                 print("|    " + text + " " * space_after + "|")
+                print("|" + " " * 77 + "|")
 
                 for key in info['Informação a ser exibida'].keys():
                     text = f"Transferência {int(key)+1}: {info['Informação a ser exibida'][key]}"
@@ -149,10 +156,8 @@ def show_screen( info: dict):
                     print("|    " + text + " " * space_after + "|")
 
                 print("|" + " " * 77 + "|")
+                print("+-----------------------------------------------------------------------------+")
 
-
-
-        print("+-----------------------------------------------------------------------------+")
 
 
 def process_option(info: dict) -> dict:
@@ -190,7 +195,7 @@ def process_option(info: dict) -> dict:
             
                 data = {"CPF": cpf}
                 url = (f"http://{ip_bank}:5060/check/user")
-                response = requests.get(url, json=data)
+                response = requests.get(url, json=data, timeout=10)
                 status_code = response.status_code
                 response = response.json()
                 
@@ -224,7 +229,7 @@ def process_option(info: dict) -> dict:
 
                 data = {"Nome": name, "CPF": cpf}
                 url = (f"http://{ip_bank}:5060/register/user")
-                response = requests.post(url, json=data)
+                response = requests.post(url, json=data, timeout=10)
                 status_code = response.status_code
                 response = response.json()
 
@@ -254,7 +259,7 @@ def process_option(info: dict) -> dict:
         elif (info['Opção'] == '2'):
             data = {"CPF usuário": info['CPF usuário']}
             url = (f"http://{info['Banco atual']}:5060/get/account/consortium")
-            response = requests.get(url, json=data)
+            response = requests.get(url, json=data, timeout=10)
             status_code = response.status_code
 
             if status_code == 200:
@@ -277,7 +282,7 @@ def process_option(info: dict) -> dict:
                 
                 data = {"ID conta": id_account, "CPF usuário": info['CPF usuário']}
                 url = (f"http://{info['Banco atual']}:5060/check/account/id")
-                status_code = requests.get(url, json=data).status_code
+                status_code = requests.get(url, json=data, timeout=10).status_code
 
                 if status_code != 200:
                     raise ValueError("Conta não encontrada")
@@ -289,7 +294,7 @@ def process_option(info: dict) -> dict:
                         "Valores": [value]}
                 
                 url = (f"http://{info['Banco atual']}:5060/request_package")
-                response = requests.patch(url, json=data)
+                response = requests.patch(url, json=data, timeout=10)
                 status_code = response.status_code
                 response = response.json()
 
@@ -316,7 +321,7 @@ def process_option(info: dict) -> dict:
                 
                 data = {"ID conta": id_account, "CPF usuário": info['CPF usuário']}
                 url = (f"http://{info['Banco atual']}:5060/check/account/id")
-                status_code = requests.get(url, json=data).status_code
+                status_code = requests.get(url, json=data, timeout=10).status_code
 
                 if status_code != 200:
                     raise ValueError("Conta não encontrada")
@@ -328,7 +333,7 @@ def process_option(info: dict) -> dict:
                         "Valores": [value]}
                 
                 url = (f"http://{info['Banco atual']}:5060/request_package")
-                response = requests.patch(url, json=data)
+                response = requests.patch(url, json=data, timeout=10)
                 status_code = response.status_code
                 response = response.json()
 
@@ -344,7 +349,7 @@ def process_option(info: dict) -> dict:
 
         elif (info['Opção'] == '5'):
             try:
-                quantity = input("\n  - Quantidade transferências: ").strip()
+                quantity = input("\n  - Quantidade de transferências: ").strip()
                 if quantity.isdigit() == False or int(quantity) <= 0:
                     raise ValueError("Quantidade inválida")
                 quantity = int(quantity)
@@ -394,7 +399,7 @@ def process_option(info: dict) -> dict:
                         raise ValueError(f"Conta do pacote {i+1} não encontrada")
                 
                 url = (f"http://{info['Banco atual']}:5060/request_package")
-                response = requests.patch(url, json=data)
+                response = requests.patch(url, json=data, timeout=10)
                 status_code = response.status_code
 
                 if status_code == 200:
@@ -424,7 +429,7 @@ def process_option(info: dict) -> dict:
             try:
                 data = {"CPFs": [info['CPF usuário']], "Tipo de conta": ["Física","Pessoal"]}
                 url = (f"http://{info['Banco atual']}:5060/register/account")
-                response = requests.post(url, json=data)
+                response = requests.post(url, json=data, timeout=10)
                 status_code = response.status_code
                 response = response.json()
 
@@ -466,7 +471,7 @@ def process_option(info: dict) -> dict:
                     data = {"CPFs": cpfs, "Tipo de conta": ["Jurídica"]}
 
                 url = (f"http://{info['Banco atual']}:5060/register/account")
-                response = requests.post(url, json=data)
+                response = requests.post(url, json=data, timeout=10)
                 status_code = response.status_code
                 response = response.json()
             
