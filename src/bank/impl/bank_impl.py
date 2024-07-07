@@ -109,20 +109,28 @@ def start_system(database: object):
             pass
 
         if database.find_first_bank() == database.ip_bank:
-            url = (f"http://{database.find_next_bank()}:5060/check_first_pass_token")
-            response = requests.get(url).json()
+            next_bank = database.find_next_bank()
 
-            if response["Token está no sistema"] == False:
+            try:
+                url = (f"http://{next_bank}:5060/check_first_pass_token")
+                response = requests.get(url, timeout=5).json()
 
-                data_token = database.token.create_token(database.banks)
-                add_packages_token(database, data_token)
+                if response["Token está no sistema"] == False:
 
-                data_token["Contadora de execução de pacote"][database.ip_bank] += 1
+                    data_token = database.token.create_token(database.banks)
+                    add_packages_token(database, data_token)
 
-                url = (f"http://{database.find_next_bank()}:5060/token_pass")
-                response = requests.post(url, json=data_token).json()
+                    data_token["Contadora de execução de pacote"][database.ip_bank] += 1
 
-            database.token.set_is_passing(True)
+                    url = (f"http://{next_bank}:5060/token_pass")
+                    response = requests.post(url, json=data_token, timeout=5).json()
+
+                database.token.set_is_passing(True)
+
+            except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout) as e:
+                with database.lock:
+                    database.banks_recconection[next_bank] = True
+                threading.Thread(target=database.loop_reconnection, args=(next_bank,)).start()
 
         time.sleep(2)
 
