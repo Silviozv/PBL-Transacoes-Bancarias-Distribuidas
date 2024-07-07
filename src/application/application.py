@@ -1,9 +1,22 @@
+""" 
+Módulo contendo as funções de implementação da aplicação. Incluindo: 
+a exibição do menu de opções, dependendo do estado atual da aplicação; 
+e a lógica de pedidos para a API, dependendo da requisição do usuário.
+"""
+
 import requests
 import os
 import re
 
 
 def start():
+    """
+    'Loop' de exibição da tela de menu, mensagens de resposta e 
+    pedido de requisição para o usuário. Inicializa as seguintes 
+    informações: estado atual do menu do usuário; IP do banco atual;
+    nome e CPF do usuário; informação a ser exibida abaixo das opções 
+    de requisição; e a opção atual.
+    """
 
     info = {}
     info['Menu atual'] = 'Inicial'
@@ -27,6 +40,15 @@ def start():
 
 
 def show_screen( info: dict):
+    """
+    Exibe as informações de menu para o usuário. Abaixo das opções 
+    de requisição, são exibidas informações de resposta.
+
+    :param info: Armazena todas as informações necessários para a lógica 
+    do menu para o usuário.
+    :type info: dict
+    """
+
     print("\n+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-+")
     print("|                           GERENCIAMENTO DE CONTAS                           |")
     print("+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-+")
@@ -134,7 +156,26 @@ def show_screen( info: dict):
 
 
 def process_option(info: dict) -> dict:
+    """
+    Processa a opção que o usuário indicou no menu. Dependendo do estado 
+    atual do menu, o processamento é feita de forma diferente. 
+    A seguir, os estados do menu:
 
+    - Inicial: Menu inicial. Possui apenas as opções de cadastrar usuários, 
+      fazer login, e encerrar a aplicação;
+    - Usuário logado: Menu de requisições para o usuário, incluindo, ir para 
+      o menu de criar contas, consultar as contas do usuário no consórcio, 
+      fazer saque, depósito, ou requisitar pacote de transferências;
+    - Criando conta: Menu de opções de contas a serem criadas pelo usuário, 
+      incluindo, física pessoal, física conjunta, e jurídica.
+
+    :param info: Armazena todas as informações necessários para a lógica 
+    do menu para o usuário.
+    :type info: dict
+    :return: Informações necessários para a lógica do menu, incluindo a 
+    mensagem de resposta em relação a requisição do usuário.
+    :rtype: dict
+    """
 
     if (info['Menu atual'] == 'Inicial'):
 
