@@ -204,14 +204,14 @@ A seguir, os principais caminhos da API REST, suas descrições e dados de envio
 Os dados necessários para o cadastro do usuário no armazenamento do banco são o seu nome e o seu CPF. Abaixo, a estrutura da requisição.
 
 <p align="center">
-  <img src="images/image32.jpeg" width = "320" />
+  <img src="images/image32.jpeg" width = "350" />
 </p>
 <p align="center"><strong> Figura 9 - Exemplo de estrutura para registro de usuário </strong> </p>
 
 Caso o registro seja bem sucedido, é indicado pelo retorno. Não é permitido dois usuário terem o mesmo CPF, por isso, a requisição é mal sucedida se o CPF indicado já estiver registrado no sistema, retornando a resposta abaixo.
 
 <p align="center">
-  <img src="images/image33.jpeg" width = "400" />
+  <img src="images/image33.jpeg" width = 450" />
 </p>
 <p align="center"><strong> Figura 10 - Resposta caso o registro do usuário seja mal sucedido </strong> </p>
 
@@ -223,7 +223,7 @@ Caso o registro seja bem sucedido, é indicado pelo retorno. Não é permitido d
 Para checar o registro do usuário, é utilizado o seu CPF como dado da requisição. Se o usuário não for encontrado, é retornada a resposta. Caso ele esteja registrado, é retornado o resultado da busca e o nome do usuário, como mostrado abaixo.
 
 <p align="center">
-  <img src="images/image34.jpeg" width = "310" />
+  <img src="images/image34.jpeg" width = "330" />
 </p>
 <p align="center"><strong> Figura 11 - Exemplo de resposta para checar registro do usuário </strong> </p>
 
@@ -235,7 +235,7 @@ Para checar o registro do usuário, é utilizado o seu CPF como dado da requisi�
 Para fazer o registro de uma conta, é necessário indicar o tipo de conta e os CPFs que estão vinculados a ela, como mostrado abaixo.
 
 <p align="center">
-  <img src="images/image9.jpeg" width = "380" />
+  <img src="images/image9.jpeg" width = "400" />
 </p>
 <p align="center"><strong> Figura 12 - Exemplo de requisição de criação de conta conjunta </strong> </p>
 
@@ -244,12 +244,12 @@ Somente a conta física conjunta e a jurídica podem ter mais de um CPF vinculad
 O registro só é bem sucedido se todos os CPFs indicados são de usuários registrados no banco e, no caso de uma conta física pessoal, se o usuário não possuir nenhuma. Em caso de falha no registro, são retornadas as respostas abaixo relacionadas aos casos citados acima, respectivamente.
 
 <p align="center">
-  <img src="images/image36.jpeg" width = "360" />
+  <img src="images/image36.jpeg" width = "400" />
 </p>
 <p align="center"><strong> Figura 13 - Exemplo de resposta de falha para usuário não encontrado </strong> </p>
 
 <p align="center">
-  <img src="images/image35.jpeg" width = "450" />
+  <img src="images/image35.jpeg" width = "470" />
 </p>
 <p align="center"><strong> Figura 14 - Exemplo de resposta de falha para registro de conta física pessoal para usuário que já à possui </strong> </p>
 
@@ -275,7 +275,7 @@ A requisição é mal sucedida se não tiverem contas encontradas que sejam vinc
 Um pacote pode conter diversas transferências, e para cada uma delas, é necessário indicar os seguintes dados: IP do banco remetente; chave da conta remetente; IP do banco destinatário; chave da conta destinatária; e valor a ser transferido. Esses dados estão separados em listas de uma estrutura, como mostrado abaixo.
 
 <p align="center">
-  <img src="images/image39.jpeg" width = "450" />
+  <img src="images/image39.jpeg" width = "470" />
 </p>
 <p align="center"><strong> Figura 16 - Exemplo de requisição de pacote </strong> </p>
 
@@ -300,7 +300,7 @@ Operações de saque e depósito também são tratadas como pacotes, apenas se m
 A resposta consiste na indicação se o pacote foi bem executado, e caso não seja, são retornadas as justificativas com a indicação do índice relacionado a transação que falhou nas listas do pacote e o motivo específico.
 
 <p align="center">
-  <img src="images/image42.jpeg" width = "300" />
+  <img src="images/image42.jpeg" width = "330" />
 </p>
 <p align="center"><strong> Figura 19 - Exemplo de resposta para um pacote mal sucedido </strong> </p>
 
