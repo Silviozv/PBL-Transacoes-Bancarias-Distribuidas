@@ -190,78 +190,159 @@ Se algum pacote tivesse sido enviado para execução, mas não foi executado ant
   <img src="images/line.jpg" width = "1000" />
 </p></p>
 
-<div id="requisicoesUsuario"> <h2> Requisições do Usuário </h2>
+<div id="apiRest"> <h2> Requisições da API REST </h2>
 
 <p align="justify"> 
 
-A seguir, serão apresentadas as ações que o usuário pode executar no sistema e como suas requisições são estruturadas. 
+A seguir, os principais caminhos da API REST, suas descrições e dados de envio e resposta importantes de serem mencionados.
 
-<h3> Registro de Usuário </h3>
+***Registrar usuário***
+ 
+  * Método: **POST**;
+  * Caminho: **/register/user**.
 
-Os dados necessários para o cadastro do usuário no armazenamento do banco são o seu nome e o seu CPF. Não é possível ter mais de um usuário no mesmo banco com o mesmo CPF. A estrutura enviada para essa ação é mostrada na Figura abaixo.
-
-<p align="center">
-  <img src="images/image8.jpeg" width = "400" />
-</p>
-<p align="center"><strong> Figura 9 - Exemplo de requisição de cadastro de usuário </strong> </p>
-
-
-<h3> Registro de Conta </h3>
-
-O usuário pode fazer três tipos de conta, sendo elas, física pessoal, física conjunta, ou jurídica. Só é possível ter uma conta física pessoal para cada usuário no mesmo banco, porém, as outras duas não tem limite. A física pessoal só tem vinculado o usuário que a criou, enquanto as outras duas podem ter mais de um usuário.
-
-Para indicar quais usuários são vinculados à conta, é utilizado o número de CPF de cada um. É necessário apenas esses dados e a indicação do tipo de conta para realizar a criação. A estrutura enviada para essa ação é mostrada na Figura abaixo.
+Os dados necessários para o cadastro do usuário no armazenamento do banco são o seu nome e o seu CPF. Abaixo, a estrutura da requisição.
 
 <p align="center">
-  <img src="images/image9.jpeg" width = "400" />
+  <img src="images/image32.jpeg" width = "320" />
 </p>
-<p align="center"><strong> Figura 10 - Exemplo de requisição de criação de conta conjunta </strong> </p>
+<p align="center"><strong> Figura 9 - Exemplo de estrutura para registro de usuário </strong> </p>
 
-Quando uma conta é criada, é indicado para ela um ID de identificação que também é usado para o usuário especificar a conta que ele quer realizar determinada ação, seja para transferir ou receber um valor. Esse ID é descrito com a inicial "AC" e o número final que é aumentado conforme as contas são criadas. 
-
-<h3> Consultar Contas no Consórcio </h3>
-
-É possível, a partir do CPF do usuário, consultar todas as contas que ele tem cadastrado em todo o consórcio. 
-
-O retorno dessa solicitação são os dados das contas do usuário, juntamente com o IP do banco que as contém. Os dados de cada conta são: os CPFs dos usuários vinculados; a chave da conta, que também é o ID; o saldo; e o tipo de conta. Um exemplo é mostrado na Figura abaixo.
+Caso o registro seja bem sucedido, é indicado pelo retorno. Não é permitido dois usuário terem o mesmo CPF, por isso, a requisição é mal sucedida se o CPF indicado já estiver registrado no sistema, retornando a resposta abaixo.
 
 <p align="center">
-  <img src="images/image10.jpeg" width = "300" />
+  <img src="images/image33.jpeg" width = "400" />
 </p>
-<p align="center"><strong> Figura 11 - Exemplo de retorno da consulta de contas no consórcio </strong> </p>
+<p align="center"><strong> Figura 10 - Resposta caso o registro do usuário seja mal sucedido </strong> </p>
 
-<h3> Solicitar Pacote de Transações </h3>
+***Consultar registro do usuário***
 
-A estrutura de um pacote de transações é um conjunto de listas referentes a cada um dos dados necessários para se realizar as transações, sendo eles: os IPs dos bancos remetentes; as chaves das contas remetentes; os IPs dos bancos destinatários; as chaves das contas destinatárias; e os valores a serem transferidos. A estrutura é mostrada na Figura abaixo.
+  * Método: **GET**;
+  * Caminho: **/check/user**.
+
+Para checar o registro do usuário, é utilizado o seu CPF como dado da requisição. Se o usuário não for encontrado, é retornada a resposta. Caso ele esteja registrado, é retornado o resultado da busca e o nome do usuário, como mostrado abaixo.
 
 <p align="center">
-  <img src="images/image11.jpeg" width = "600" />
+  <img src="images/image34.jpeg" width = "310" />
 </p>
-<p align="center"><strong> Figura 12 - Exemplo de estrutura de requisição de pacote </strong> </p>
+<p align="center"><strong> Figura 11 - Exemplo de resposta para checar registro do usuário </strong> </p>
 
-Os dados da mesma transação ficam alinhados nas mesmas posições das listas. No exemplo da Figura acima, a primeira transação seria:
+***Registrar conta***
+  
+  * Método: **POST**;
+  * Caminho: **/register/account**;
 
-> A conta AC1 do banco 172.24.16.1 deve enviar 100 para a conta AC1 do banco 172.24.16.2
-
-Toda ação de movimentação de dinheiro deve estar em um pacote, mesmo só tendo uma transferência, já que terá que ser executada de forma ordenada assim como as outras. Dessa forma, as operações de retirada e depósito de dinheiro também são tratadas como pacotes e possuem a mesma estrutura da Figura 12, com algumas mudanças.
-
-Para realizar uma retirada de dinheiro, a estrutura terá apenas as partes do remetente e do valor a ser retirado (Figura 13).
+Para fazer o registro de uma conta, é necessário indicar o tipo de conta e os CPFs que estão vinculados a ela, como mostrado abaixo.
 
 <p align="center">
-  <img src="images/image12.jpeg" width = "400" />
+  <img src="images/image9.jpeg" width = "380" />
 </p>
-<p align="center"><strong> Figura 13 - Exemplo de estrutura para retirada de dinheiro </strong> </p>
+<p align="center"><strong> Figura 12 - Exemplo de requisição de criação de conta conjunta </strong> </p>
 
-Inversamente, no caso do depósito, somente as partes do destinatário e do valor são indicados (Figura 14).
+Somente a conta física conjunta e a jurídica podem ter mais de um CPF vinculado.
+
+O registro só é bem sucedido se todos os CPFs indicados são de usuários registrados no banco e, no caso de uma conta física pessoal, se o usuário não possuir nenhuma. Em caso de falha no registro, são retornadas as respostas abaixo relacionadas aos casos citados acima, respectivamente.
 
 <p align="center">
-  <img src="images/image13.jpeg" width = "400" />
+  <img src="images/image36.jpeg" width = "360" />
 </p>
-<p align="center"><strong> Figura 14 - Exemplo de estrutura para depósito de dinheiro </strong> </p>
+<p align="center"><strong> Figura 13 - Exemplo de resposta de falha para usuário não encontrado </strong> </p>
 
+<p align="center">
+  <img src="images/image35.jpeg" width = "450" />
+</p>
+<p align="center"><strong> Figura 14 - Exemplo de resposta de falha para registro de conta física pessoal para usuário que já à possui </strong> </p>
+
+***Consultar contas do consórcio***
+
+  * Método: **GET**;
+  * Caminho: **/get/account/consortium**;
+
+A partir do CPF do usuário, é possível consultar as contas vinculadas a ele em todo o consórcio de bancos. O banco que recebe a requisição envia para os outros e organiza os dados para serem retornados.
+
+A requisição é mal sucedida se não tiverem contas encontradas que sejam vinculadas ao usuário. Caso seja bem sucedido, o retorno contém os IPs dos bancos que possuem as contas e os dados específicos de cada uma, como no exemplo abaixo.
+
+<p align="center">
+  <img src="images/image37.jpeg" width = "250" />
+</p>
+<p align="center"><strong> Figura 15 - Exemplo de retorno da consulta de contas no consórcio </strong> </p>
+
+***Requisição de pacote***
+
+  * Método: **PATCH**;
+  * Caminho: **/request_package**;
+
+Um pacote pode conter diversas transferências, e para cada uma delas, é necessário indicar os seguintes dados: IP do banco remetente; chave da conta remetente; IP do banco destinatário; chave da conta destinatária; e valor a ser transferido. Esses dados estão separados em listas de uma estrutura, como mostrado abaixo.
+
+<p align="center">
+  <img src="images/image39.jpeg" width = "450" />
+</p>
+<p align="center"><strong> Figura 16 - Exemplo de requisição de pacote </strong> </p>
+
+Para saber qual dado se refere a qual transferência, é usada as posições dos dados nas listas, sendo elas equivalentes. Por exemplo, a primeira transferência do pacote seria:
+
+> A conta de chave AC0 do banco 172.24.16.1 deve enviar o valor 100 para a conta de chave AC1 do banco 172.24.16.3.
+
+Para fazer apenas uma transferência, seria setado apenas um dado em cada lista.
+
+Operações de saque e depósito também são tratadas como pacotes, apenas se modifica os dados indicados. A operação de saque contém apenas os dados do remetente setados e a de depósito, os dados do destinatário, como mostrado nos exemplos abaixo, respectivamente.
+
+<p align="center">
+  <img src="images/image40.jpeg" width = "380" />
+</p>
+<p align="center"><strong> Figura 17 - Exemplo de requisição de saque </strong> </p>
+
+<p align="center">
+  <img src="images/image41.jpeg" width = "380" />
+</p>
+<p align="center"><strong> Figura 18 - Exemplo de requisição de depósito </strong> </p>
+
+A resposta consiste na indicação se o pacote foi bem executado, e caso não seja, são retornadas as justificativas com a indicação do índice relacionado a transação que falhou nas listas do pacote e o motivo específico.
+
+<p align="center">
+  <img src="images/image42.jpeg" width = "300" />
+</p>
+<p align="center"><strong> Figura 19 - Exemplo de resposta para um pacote mal sucedido </strong> </p>
+
+
+
+***Passagem do token***
+
+  * Método: **POST**;
+  * Caminho: **/token_pass**;
+
+Caminho usado para passar o token entre os bancos. Os dados contidos na passagem do token são: a estrutura contadora de execução, usada como base para saber qual banco deve executar os pacotes armazenados na passagem do token; a estrutura contadora de passagem do token, usada para identificar duplicação de token; e a lista de pacotes.
+
+<p align="center">
+  <img src="images/image38.jpeg" width = "450" />
+</p>
+<p align="center"><strong> Figura 20 - Exemplo de dados armazenados na estrutura do token </strong> </p>
+
+***Alerta de problema no sistema do token***
+
+  * Método: **POST**;
+  * Caminho: **/alert_problem_detected**;
+
+O alerta de problema no sistema do token contém os dados da indicação se o banco que recebeu a mensagem deve lidar com o problema, ou não, e qual o IP do banco que está enviando o alerta, como mostrado abaixo
+
+<p align="center">
+  <img src="images/image43.jpeg" width = "370" />
+</p>
+<p align="center"><strong> Figura 21 - Exemplo de dados do alerta de problema detectado </strong> </p>
+
+A única resposta diferente da indicação que o recebimento do alerta foi bem sucedido é caso o banco já tenha recebido o alerta de outro banco. Nesse caso, é retornada a resposta abaixo.
+
+<p align="center">
+  <img src="images/image44.jpeg" width = "300" />
+</p>
+<p align="center"><strong> Figura 22 - Exemplo de resposta caso o banco já tenha recebido o alerta </strong> </p>
+
+
+> Observação: existem mais caminhos, como os relacionados a transferência de dinheiro entre os bancos, porém foram apresentados acima apenas os mais pertinentes.
 
 </p>
 </div>
+
 
 <p align="center">
   <img src="images/line.jpg" width = "1000" />
@@ -275,19 +356,19 @@ Todas as transferências de um pacote são dependentes umas das outras, precisan
 
 Internamente, toda conta possui dois saldos distintos, um deles é o saldo que o usuário pode acessar, transferir ou depositar dinheiro, e o outro é um **saldo bloqueado** que o usuário não tem acesso.
 
-Quando a transferência de um pacote é feita, as contas que estão enviando o dinheiro retiram a quantia do seu saldo normal e enviam a mensagem de transferência para o banco destinatário. O dinheiro é depositado na conta do saldo bloqueado, e permanece lá. O banco remetente da transação retorna ao banco que está gerenciando os pacotes que a ação foi bem sucedida (Figura 15). 
+Quando a transferência de um pacote é feita, as contas que estão enviando o dinheiro retiram a quantia do seu saldo normal e enviam a mensagem de transferência para o banco destinatário. O dinheiro é depositado na conta do saldo bloqueado, e permanece lá. O banco remetente da transação retorna ao banco que está gerenciando os pacotes que a ação foi bem sucedida (Figura 23). 
 
 <p align="center">
   <img src="images/image14.jpeg" width = "600" />
 </p>
-<p align="center"><strong> Figura 15 - Início da execução do pacote </strong> </p>
+<p align="center"><strong> Figura 23 - Início da execução do pacote </strong> </p>
 
-Se todas as transferências do pacote foram bem sucedidas, é enviado o aviso para os bancos remetentes avisarem os bancos destinatários para liberar o valor do saldo bloqueado (Figura 16). 
+Se todas as transferências do pacote foram bem sucedidas, é enviado o aviso para os bancos remetentes avisarem os bancos destinatários para liberar o valor do saldo bloqueado (Figura 24). 
 
 <p align="center">
   <img src="images/image15.jpeg" width = "600" />
 </p>
-<p align="center"><strong> Figura 16 - Liberação do valor do saldo bloqueado </strong> </p>
+<p align="center"><strong> Figura 24 - Liberação do valor do saldo bloqueado </strong> </p>
 
 Caso alguma transferência não seja bem sucedida, o aviso é para reembolsar o valor transferido e não liberar o saldo bloqueado para o saldo normal.
 
@@ -309,16 +390,16 @@ Para o sistema funcionar, cada banco precisa saber antecipadamente quais bancos 
 <p align="center">
   <img src="images/image3.jpeg" width = "350" />
 </p>
-<p align="center"><strong> Figura 17 - Solicitação dos IPs dos bancos do consórcio </strong> </p>
+<p align="center"><strong> Figura 25 - Solicitação dos IPs dos bancos do consórcio </strong> </p>
 
 O sistema não vai funcionar corretamente se o usuário não indicar manualmente, em cada um dos bancos, os IPs dos bancos do consórcio.
 
-Após essa inserção, o servidor do banco é iniciado (Figura 18).
+Após essa inserção, o servidor do banco é iniciado (Figura 26).
 
 <p align="center">
   <img src="images/image25.jpeg" width = "400" />
 </p>
-<p align="center"><strong> Figura 18 - Servidor do banco iniciado </strong> </p>
+<p align="center"><strong> Figura 26 - Servidor do banco iniciado </strong> </p>
 
 </p>
 </div>
@@ -346,68 +427,68 @@ Em razão dessa checagem, quando o banco estiver disponível novamente, os que p
 
 <p align="justify"> 
 
-A tela inicial da aplicação de gerenciamento possui as opções de fazer o cadastro ou o *login* do usuário (Figura 19). 
+A tela inicial da aplicação de gerenciamento possui as opções de fazer o cadastro ou o *login* do usuário (Figura 27). 
 
 <p align="center">
   <img src="images/image16.jpeg" width = "600" />
 </p>
-<p align="center"><strong> Figura 19 - Tela inicial da aplicação </strong> </p>
+<p align="center"><strong> Figura 27 - Tela inicial da aplicação </strong> </p>
 
-O cadastro é feito completando as informações abaixo (Figura 20).
+O cadastro é feito completando as informações abaixo (Figura 28).
 
 <p align="center">
   <img src="images/image17.jpeg" width = "280" />
 </p>
-<p align="center"><strong> Figura 20 - Inserção de dados para cadastro do usuário </strong> </p>
+<p align="center"><strong> Figura 28 - Inserção de dados para cadastro do usuário </strong> </p>
 
-Tendo uma conta cadastrada, ao inserir o CPF e o IP do banco ao qual deseja se conectar, a tela da conta do usuário é exibida (Figura 21).
+Tendo uma conta cadastrada, ao inserir o CPF e o IP do banco ao qual deseja se conectar, a tela da conta do usuário é exibida (Figura 29).
 
 <p align="center">
   <img src="images/image18.jpeg" width = "600" />
 </p>
-<p align="center"><strong> Figura 21 - Tela de opções de requisição do usuário </strong> </p>
+<p align="center"><strong> Figura 29 - Tela de opções de requisição do usuário </strong> </p>
 
-A opção de "criar conta" exibe a tela de opções de contas a serem criadas (Figura 22). 
+A opção de "criar conta" exibe a tela de opções de contas a serem criadas (Figura 30). 
 
 <p align="center">
   <img src="images/image19.jpeg" width = "600" />
 </p>
-<p align="center"><strong> Figura 22 - Tela de seleção de tipo de conta </strong> </p>
+<p align="center"><strong> Figura 30 - Tela de seleção de tipo de conta </strong> </p>
 
-A "física pessoal" cria a conta diretamente ao selecionar a opção. As outras duas pedem a quantidade de pessoas vinculadas à conta e o CPF de cada uma (Figura 23).
+A "física pessoal" cria a conta diretamente ao selecionar a opção. As outras duas pedem a quantidade de pessoas vinculadas à conta e o CPF de cada uma (Figura 31).
 
 <p align="center">
   <img src="images/image20.jpeg" width = "300" />
 </p>
-<p align="center"><strong> Figura 23 - Inserção da quantidade de usuários e seus CPFs </strong> </p>
+<p align="center"><strong> Figura 31 - Inserção da quantidade de usuários e seus CPFs </strong> </p>
 
-Voltando a tela de opções do usuário, a opção de consultar contas no consórcio retorna todas as contas que o CPF do usuário está cadastrado em todos os bancos do consórcio. A mensagem de retorno exibida são os dados de todas as contas e o IP indicando o banco ao qual elas pertencem (Figura 24).
+Voltando a tela de opções do usuário, a opção de consultar contas no consórcio retorna todas as contas que o CPF do usuário está cadastrado em todos os bancos do consórcio. A mensagem de retorno exibida são os dados de todas as contas e o IP indicando o banco ao qual elas pertencem (Figura 32).
 
 <p align="center">
   <img src="images/image21.jpeg" width = "600" />
 </p>
-<p align="center"><strong> Figura 24 - Exemplo de retorno da opção de consultar contas no consórcio </strong> </p>
+<p align="center"><strong> Figura 32 - Exemplo de retorno da opção de consultar contas no consórcio </strong> </p>
 
-O saque e o depósito apenas pedem a chave da conta e o valor desejado (Figura 25). O resultado da requisição é exibido abaixo do IP do banco e do nome do usuário.
+O saque e o depósito apenas pedem a chave da conta e o valor desejado (Figura 33). O resultado da requisição é exibido abaixo do IP do banco e do nome do usuário.
 
 <p align="center">
   <img src="images/image22.jpeg" width = "260" />
 </p>
-<p align="center"><strong> Figura 25 - Inserção de dados para realizar um saque </strong> </p>
+<p align="center"><strong> Figura 33 - Inserção de dados para realizar um saque </strong> </p>
 
-Na opção de requisitar um pacote de transferências, é pedida a quantidade de transferências, e depois, elas devem ser preenchidas uma por uma (Figura 26).
+Na opção de requisitar um pacote de transferências, é pedida a quantidade de transferências, e depois, elas devem ser preenchidas uma por uma (Figura 34).
 
 <p align="center">
   <img src="images/image23.jpeg" width = "290" />
 </p>
-<p align="center"><strong> Figura 26 - Inserção de dados para requisição de um pacote </strong> </p>
+<p align="center"><strong> Figura 34 - Inserção de dados para requisição de um pacote </strong> </p>
 
-Caso a execução do pacote seja falha, a mensagem de retorno indica qual ou quais transferências não foram bem sucedidas, juntamente com os motivos (Figura 27).
+Caso a execução do pacote seja falha, a mensagem de retorno indica qual ou quais transferências não foram bem sucedidas, juntamente com os motivos (Figura 35).
 
 <p align="center">
   <img src="images/image24.jpeg" width = "500" />
 </p>
-<p align="center"><strong> Figura 27 - Exemplo de retorno da execução de um pacote mal sucedido </strong> </p>
+<p align="center"><strong> Figura 35 - Exemplo de retorno da execução de um pacote mal sucedido </strong> </p>
 
 </p>
 </div>
@@ -424,37 +505,37 @@ A seguir, como a aplicação de gerenciamento, o algoritmo de tratamento de conc
 
 Utilizando a aplicação, o cliente pode se cadastrar e criar as contas desejadas em qualquer banco disponível. Também é possível coletar os dados das suas contas no consórcio sem nenhuma restrição, não sofrendo interferência do algoritmo de tratamento de concorrência.
 
-O algoritmo vai interferir quando o cliente requisitar uma movimentação financeira para um banco. Quando o pacote é recebido, o banco entra em um **loop de espera** que atrasa a resposta para o usuário afirmando se o pacote foi bem executado ou não (Figura 28). Esse *loop* só é encerrado quando o pacote é executado.
+O algoritmo vai interferir quando o cliente requisitar uma movimentação financeira para um banco. Quando o pacote é recebido, o banco entra em um **loop de espera** que atrasa a resposta para o usuário afirmando se o pacote foi bem executado ou não (Figura 36). Esse *loop* só é encerrado quando o pacote é executado.
 
 <p align="center">
   <img src="images/image28.jpeg" width = "500" />
 </p>
-<p align="center"><strong> Figura 28 - Recebimento do pacote e início do loop de espera </strong> </p>
+<p align="center"><strong> Figura 36 - Recebimento do pacote e início do loop de espera </strong> </p>
 
-Quando o *token* chega ao banco que possui um pacote a ser executado, ele adiciona os dados desse pacote, juntamente com o IP do banco de origem, na fila de pacotes do *token* e passa adiante (Figura 29).
+Quando o *token* chega ao banco que possui um pacote a ser executado, ele adiciona os dados desse pacote, juntamente com o IP do banco de origem, na fila de pacotes do *token* e passa adiante (Figura 37).
 
 <p align="center">
   <img src="images/image29.jpeg" width = "500" />
 </p>
-<p align="center"><strong> Figura 29 - Banco adiciona pacote na fila de execução </strong> </p>
+<p align="center"><strong> Figura 37 - Banco adiciona pacote na fila de execução </strong> </p>
 
 Se tivesse mais de um pacote para ser executado no banco, também seria adicionado na fila.
 
 O banco responsável por executar o pacote vai ser aquele que o *token* passa pela segunda vez naquele determinado **"ciclo"**. Dependendo de como o *token* iniciou e por quais bancos ele conseguiu passar, o banco responsável pode variar no decorrer da execução do sistema.
 
-Digamos que, no exemplo dado nas Figura acima, o banco responsável pela execução dos pacotes é o **B1**. Ele vai receber o *token*, verificar que ele é o responsável pela execução e começará o processamento dos pacotes (Figura 30). 
+Digamos que, no exemplo dado nas Figura acima, o banco responsável pela execução dos pacotes é o **B1**. Ele vai receber o *token*, verificar que ele é o responsável pela execução e começará o processamento dos pacotes (Figura 38). 
 
 <p align="center">
   <img src="images/image30.jpeg" width = "500" />
 </p>
-<p align="center"><strong> Figura 30 - Banco executa pacotes da fila </strong> </p>
+<p align="center"><strong> Figura 38 - Banco executa pacotes da fila </strong> </p>
 
 O pacote será executado e ele pode ter sido bem sucedido ou não. Ao fim da execução desse pacote, o **B1** retorna para o **B3** o resultado da execução. Ao finalizar todos os pacotes, o **B1** limpa a fila de pacotes e repassa o *token*. Como o **B3** recebeu a resposta do pacote, ele sai do **loop de espera** e retorna o resultado para a aplicação que solicitou o pacote. Esse processo é mostrado na Figura abaixo.
 
 <p align="center">
   <img src="images/image31.jpeg" width = "500" />
 </p>
-<p align="center"><strong> Figura 31 - Banco retorna resultado do pacote para a aplicação e token é repassado </strong> </p>
+<p align="center"><strong> Figura 39 - Banco retorna resultado do pacote para a aplicação e token é repassado </strong> </p>
 
 Esse processo seria o mesmo para mais de um pacote na fila do *token*, apenas seria executado um de cada vez e cada banco de origem receberia a sua resposta.
 
