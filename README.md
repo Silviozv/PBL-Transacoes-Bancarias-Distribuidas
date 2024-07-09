@@ -667,5 +667,8 @@ FCamara (2023). "Pix: o que é e quais são os benefícios?". Disponível em: ht
 NASCIMENTO, A. "SISTEMAS DISTRIBUÍDOS
 CAPÍTULO 6 – SINCRONIZAÇÃO". Disponível em: http://profs.ic.uff.br/~simone/sd/contaulas/aula14.pdf. Acesso em: 02 de julho de 2024.
 
+FIGUEIREDO, D. "Sistemas Distribuídos
+Aula 16". Disponível em: https://www.cos.ufrj.br/~daniel/sd-2020/slides/aula_16.pdf. Acesso em: 02 de julho de 2024.
+
 </p>
 </div>
