@@ -36,7 +36,7 @@ Os requisitos para implementação do sistema são:
 	<ul>
 		<li><a href="#comunicacaoPerifericos"> Comunicação entre os Periféricos </a></li>
 		<li><a href="#algoritmoTratamentoConcorrencia"> Algoritmo de Tratamento de Concorrência </a> </li>
-		<li><a href="#requisicoesUsuario"> Requisições do Usuário </a> </li>
+		<li><a href="#apiRest"> Requisições da API REST </a> </li>
 		<li><a href="#execucaoPacotes"> Execução de Pacotes </a> </li>
     <li><a href="#inicializacaoBancos"> Inicialização dos Bancos </a> </li>
     <li><a href="#perdaConexaoBancos"> Perda de Conexão entre Bancos </a> </li>
