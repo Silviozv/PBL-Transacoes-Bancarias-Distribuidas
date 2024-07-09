@@ -192,7 +192,9 @@ def request_package(database: object, data_package: dict):
             process_packages(database, data_token)
             loop = False
 
-    response = database.packages[id]
+    response = {}
+    response["Bem sucedido"] = database.packages[id]["Bem sucedido"]
+    response["Justificativas"] = database.packages[id]["Justificativas"]
     return response
 
 
