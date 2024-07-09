@@ -646,7 +646,7 @@ Foi implementado um sistema distribuído de servidores que desempenham papel de 
 
 O algoritmo utilizado para o tratamento de concorrência evita que mais de um pacote de movimentação financeira esteja sendo executado ao mesmo tempo. Os erros que podem ocorrer no algoritmo são tratados, conseguindo, assim, retornar o sistema ao seu bom funcionamento.
 
-Uma ideia de melhoria útil para o sistema seria poder acrescentar mais bancos enquanto o consórcio já foi inicializado.
+Uma ideia de melhoria útil para o sistema seria poder acrescentar mais bancos enquanto o consórcio já foi inicializado. Também, melhoraria a eficiência do sistema se o tempo limite de indicação que o *token* pode ter se perdido seja adaptado dependendo dos tempos anteriores de passagem dele.
 
 Em conclusão, todos os requisitos propostos no projeto foram implementados com êxito e o sistema funciona corretamente. 
 
