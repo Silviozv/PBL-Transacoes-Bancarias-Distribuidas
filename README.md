@@ -263,7 +263,7 @@ A partir do CPF do usuário, é possível consultar as contas vinculadas a ele e
 A requisição é mal sucedida se não tiverem contas encontradas que sejam vinculadas ao usuário. Caso seja bem sucedido, o retorno contém os IPs dos bancos que possuem as contas e os dados específicos de cada uma, como no exemplo abaixo.
 
 <p align="center">
-  <img src="images/image37.jpeg" width = "250" />
+  <img src="images/image37.jpeg" width = "290" />
 </p>
 <p align="center"><strong> Figura 15 - Exemplo de retorno da consulta de contas no consórcio </strong> </p>
 
@@ -275,7 +275,7 @@ A requisição é mal sucedida se não tiverem contas encontradas que sejam vinc
 Um pacote pode conter diversas transferências, e para cada uma delas, é necessário indicar os seguintes dados: IP do banco remetente; chave da conta remetente; IP do banco destinatário; chave da conta destinatária; e valor a ser transferido. Esses dados estão separados em listas de uma estrutura, como mostrado abaixo.
 
 <p align="center">
-  <img src="images/image39.jpeg" width = "470" />
+  <img src="images/image39.jpeg" width = "500" />
 </p>
 <p align="center"><strong> Figura 16 - Exemplo de requisição de pacote </strong> </p>
 
@@ -314,7 +314,7 @@ A resposta consiste na indicação se o pacote foi bem executado, e caso não se
 Caminho usado para passar o token entre os bancos. Os dados contidos na passagem do token são: a estrutura contadora de execução, usada como base para saber qual banco deve executar os pacotes armazenados na passagem do token; a estrutura contadora de passagem do token, usada para identificar duplicação de token; e a lista de pacotes.
 
 <p align="center">
-  <img src="images/image38.jpeg" width = "450" />
+  <img src="images/image38.jpeg" width = "500" />
 </p>
 <p align="center"><strong> Figura 20 - Exemplo de dados armazenados na estrutura do token </strong> </p>
 
